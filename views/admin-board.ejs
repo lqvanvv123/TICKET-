@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Bảng Kanban — Bàn hỗ trợ IT</title>
+</head>
+<body>
+  <%- include('partials/admin-sidebar') %>
+  <div class="container container-wide has-sidebar">
+    <%- include('partials/admin-header', { pageTitle: 'Bảng Kanban' }) %>
+
+    <div class="board">
+      <% columns.forEach(col => { %>
+        <div class="board-col" data-status="<%= col.status %>">
+          <div class="board-col-head">
+            <span class="stamp stamp-<%= col.slug %>"><%= col.status %></span>
+            <span class="board-count"><%= col.tickets.length %></span>
+          </div>
+          <div class="board-col-body" data-dropzone>
+            <% col.tickets.forEach(t => { %>
+              <div class="board-card" draggable="true" data-id="<%= t._id %>">
+                <div class="board-card-top">
+                  <span class="ticket-id">#<%= t._id.toString().slice(-6) %></span>
+                  <span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span>
+                </div>
+                <div class="board-card-title"><%= t.title %></div>
+                <div class="board-card-desc"><%= t.description %></div>
+                <div class="board-card-meta">
+                  <span class="type-badge type-<%= REQUEST_TYPE_SLUG[t.requestType] %>"><%= t.requestType %></span>
+                  <% if (t.attachments && t.attachments.length) { %>
+                    <span class="attach-count">📎 <%= t.attachments.length %></span>
+                  <% } %>
+                </div>
+                <%- include('partials/attachments', { attachments: t.attachments }) %>
+                <div class="board-card-footer">
+                  <span><%= t.user ? t.user.username : 'N/A' %></span>
+                  <span class="ticket-date"><%= new Date(t.createdAt).toLocaleDateString('vi-VN') %></span>
+                </div>
+              </div>
+            <% }) %>
+            <% if (col.tickets.length === 0) { %>
+              <div class="board-empty">Không có yêu cầu</div>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/board.js"></script>
+  <script src="/js/sidebar.js"></script>
+</body>
+</html>

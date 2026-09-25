@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Bàn làm việc IT — Bàn hỗ trợ IT</title>
+</head>
+<body>
+  <%- include('partials/admin-sidebar') %>
+  <div class="container has-sidebar">
+    <%- include('partials/admin-header', { pageTitle: 'Danh sách yêu cầu' }) %>
+
+    <div class="card">
+      <h3>Yêu cầu cần xử lý</h3>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã</th>
+              <th>Người gửi</th>
+              <th>Tiêu đề</th>
+              <th>Loại</th>
+              <th>Ưu tiên</th>
+              <th>Đính kèm</th>
+              <th>Trạng thái</th>
+              <th>Cập nhật</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% tickets.forEach(t => { %>
+              <tr>
+                <td class="ticket-id">#<%= t._id.toString().slice(-6) %></td>
+                <td><%= t.user ? t.user.username : 'N/A' %></td>
+                <td>
+                  <div class="ticket-title"><%= t.title %></div>
+                  <div class="ticket-desc"><%= t.description %></div>
+                </td>
+                <td><span class="type-badge type-<%= REQUEST_TYPE_SLUG[t.requestType] %>"><%= t.requestType %></span></td>
+                <td><span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span></td>
+                <td><%- include('partials/attachments', { attachments: t.attachments }) %></td>
+                <td><span class="stamp stamp-<%= STATUS_SLUG[t.status] %>"><%= t.status %></span></td>
+                <td>
+                  <form action="/admin/ticket/<%= t._id %>" method="POST">
+                    <select name="status" onchange="this.form.submit()" aria-label="Đổi trạng thái yêu cầu #<%= t._id.toString().slice(-6) %>">
+                      <option value="<%= STATUS.NEW %>" <%= t.status === STATUS.NEW ? 'selected' : '' %>><%= STATUS.NEW %></option>
+                      <option value="<%= STATUS.IN_PROGRESS %>" <%= t.status === STATUS.IN_PROGRESS ? 'selected' : '' %>><%= STATUS.IN_PROGRESS %></option>
+                      <option value="<%= STATUS.DONE %>" <%= t.status === STATUS.DONE ? 'selected' : '' %>><%= STATUS.DONE %></option>
+                    </select>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+            <% if (tickets.length === 0) { %>
+              <tr class="empty-row"><td colspan="8">Chưa có yêu cầu nào được gửi.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/sidebar.js"></script>
+</body>
+</html>

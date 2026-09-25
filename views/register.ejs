@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Đăng ký — Bàn hỗ trợ IT</title>
+</head>
+<body>
+  <div class="auth-shell">
+    <div class="auth-card">
+      <p class="auth-mark">BÀN HỖ TRỢ IT</p>
+      <h2 class="auth-title">Tạo tài khoản</h2>
+
+      <div class="card ticket-stub">
+        <% if (error) { %> <p class="error-box"><%= error %></p> <% } %>
+
+        <form action="/register" method="POST">
+          <div class="field">
+            <label for="username">Tên đăng nhập</label>
+            <input type="text" id="username" name="username" required autofocus>
+          </div>
+          <div class="field">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" name="password" required minlength="6">
+          </div>
+          <div class="field">
+            <label for="confirmPassword">Nhập lại mật khẩu</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary">Đăng ký</button>
+        </form>
+
+        <p class="switch-line">Đã có tài khoản? <a href="/login">Đăng nhập</a></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<% if (attachments && attachments.length) { %>
+  <div class="attach-list">
+    <% attachments.forEach(a => { %>
+      <a class="attach-chip" href="<%= a.url %>" target="_blank" rel="noopener noreferrer" title="<%= a.originalName %>">
+        📎 <span class="attach-name"><%= a.originalName %></span>
+      </a>
+    <% }) %>
+  </div>
+<% } %>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Thống kê — Bàn hỗ trợ IT</title>
+</head>
+<body>
+  <%- include('partials/admin-sidebar') %>
+  <div class="container container-wide has-sidebar">
+    <%- include('partials/admin-header', { pageTitle: 'Thống kê' }) %>
+
+    <div class="stat-grid">
+      <div class="card stat-card">
+        <span class="stat-label">Tổng số yêu cầu</span>
+        <span class="stat-value"><%= total %></span>
+      </div>
+      <div class="card stat-card">
+        <span class="stat-label">Đang mở</span>
+        <span class="stat-value"><%= (byStatus[STATUS.NEW] || 0) + (byStatus[STATUS.IN_PROGRESS] || 0) %></span>
+      </div>
+      <div class="card stat-card">
+        <span class="stat-label">Đã hoàn thành</span>
+        <span class="stat-value"><%= byStatus[STATUS.DONE] || 0 %></span>
+      </div>
+      <div class="card stat-card">
+        <span class="stat-label">Thời gian xử lý TB</span>
+        <span class="stat-value">
+          <% if (avgResolutionHours === null) { %>
+            —
+          <% } else if (avgResolutionHours < 24) { %>
+            <%= avgResolutionHours.toFixed(1) %>h
+          <% } else { %>
+            <%= (avgResolutionHours / 24).toFixed(1) %> ngày
+          <% } %>
+        </span>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h3>Theo trạng thái</h3>
+        <canvas id="chartStatus" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h3>Theo mức độ ưu tiên</h3>
+        <canvas id="chartPriority" height="220"></canvas>
+      </div>
+      <div class="card chart-wide">
+        <h3>Yêu cầu mới — 14 ngày gần nhất</h3>
+        <canvas id="chartTrend" height="180"></canvas>
+      </div>
+      <div class="card chart-wide">
+        <h3>Theo loại yêu cầu</h3>
+        <canvas id="chartType" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script>
+    const inkColor = "#3a3f3b";
+    const gridColor = "#d9d4c5";
+    Chart.defaults.font.family = "IBM Plex Sans, sans-serif";
+    Chart.defaults.color = inkColor;
+
+    const statusLabels = <%- JSON.stringify(Object.keys(byStatus)) %>;
+    const statusData = <%- JSON.stringify(Object.values(byStatus)) %>;
+    new Chart(document.getElementById("chartStatus"), {
+      type: "doughnut",
+      data: {
+        labels: statusLabels,
+        datasets: [{ data: statusData, backgroundColor: ["#b5432b", "#92650f", "#2f5233"] }],
+      },
+      options: { plugins: { legend: { position: "bottom" } } },
+    });
+
+    const prioLabels = <%- JSON.stringify(Object.keys(byPriority)) %>;
+    const prioData = <%- JSON.stringify(Object.values(byPriority)) %>;
+    new Chart(document.getElementById("chartPriority"), {
+      type: "bar",
+      data: {
+        labels: prioLabels,
+        datasets: [{ data: prioData, backgroundColor: ["#7a776c", "#92650f", "#b5432b", "#7a1f1f"] }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } },
+      },
+    });
+
+    const trendLabels = <%- JSON.stringify(trend.labels) %>;
+    const trendData = <%- JSON.stringify(trend.counts) %>;
+    new Chart(document.getElementById("chartTrend"), {
+      type: "line",
+      data: {
+        labels: trendLabels,
+        datasets: [{
+          data: trendData,
+          borderColor: "#92650f",
+          backgroundColor: "rgba(146,101,15,0.12)",
+          fill: true,
+          tension: 0.25,
+          pointRadius: 3,
+        }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } },
+      },
+    });
+
+    const typeLabels = <%- JSON.stringify(Object.keys(byRequestType)) %>;
+    const typeData = <%- JSON.stringify(Object.values(byRequestType)) %>;
+    new Chart(document.getElementById("chartType"), {
+      type: "bar",
+      data: {
+        labels: typeLabels,
+        datasets: [{ data: typeData, backgroundColor: "#3a3f3b" }],
+      },
+      options: {
+        indexAxis: "y",
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, grid: { color: gridColor } }, y: { grid: { display: false } } },
+      },
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Mở menu" aria-expanded="false" aria-controls="appSidebar">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<aside class="sidebar" id="appSidebar" aria-hidden="true">
+  <div class="sidebar-head">
+    <span class="sidebar-title">Menu</span>
+    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Đóng menu">✕</button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <details class="kb-root">
+      <summary class="kb-nav-btn">☎️ Liên hệ IT trực tiếp</summary>
+      <div class="kb-body">
+        <p class="kb-hint">Trường hợp gấp, không đợi được xử lý qua ticket, bạn có thể liên hệ trực tiếp:</p>
+        <ul class="contact-list">
+          <li><span class="contact-label">Hotline nội bộ</span><span class="contact-value">1900&nbsp;101 (máy lẻ IT: 101)</span></li>
+          <li><span class="contact-label">Điện thoại</span><span class="contact-value">090&nbsp;xxx&nbsp;xxxx</span></li>
+          <li><span class="contact-label">Email</span><span class="contact-value"><a href="mailto:it-support@congty.com">it-support@congty.com</a></span></li>
+          <li><span class="contact-label">Zalo/Teams</span><span class="contact-value">IT&nbsp;Support&nbsp;Desk</span></li>
+          <li><span class="contact-label">Giờ hỗ trợ</span><span class="contact-value">8:00–17:30, Thứ 2 – Thứ 6</span></li>
+        </ul>
+        <p class="kb-hint">Ngoài giờ hoặc lỗi không khẩn cấp, vui lòng gửi yêu cầu qua form để được theo dõi và có lịch sử xử lý.</p>
+      </div>
+    </details>
+
+    <details class="kb-root">
+      <summary class="kb-nav-btn">📋 Lỗi thường gặp</summary>
+
+      <div class="kb-body">
+        <p class="kb-hint">Xem thử các lỗi hay gặp dưới đây — nếu vẫn chưa khắc phục được, hãy gửi yêu cầu ở form bên dưới.</p>
+
+        <details class="kb-category">
+          <summary>🖥️ Máy tính</summary>
+          <div class="kb-item">
+            <p class="kb-q">Máy không lên nguồn / không khởi động</p>
+            <p class="kb-a">Kiểm tra dây nguồn đã cắm chặt chưa, ổ điện có ra điện không, đèn báo nguồn trên case có sáng không. Nếu là laptop, thử cắm sạc và giữ nút nguồn 10 giây rồi mở lại.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Máy chạy chậm, giật, hay treo</p>
+            <p class="kb-a">Tắt các ứng dụng không dùng tới, kiểm tra Task Manager xem tiến trình nào chiếm nhiều CPU/RAM, quét virus, và khởi động lại máy.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Màn hình xanh (Blue Screen of Death)</p>
+            <p class="kb-a">Chụp lại mã lỗi hiển thị trên màn hình xanh (nếu có), khởi động lại máy. Nếu lặp lại nhiều lần, gửi yêu cầu kèm ảnh chụp mã lỗi để IT kiểm tra driver/phần cứng.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Không vào được Wi-Fi / mạng công ty</p>
+            <p class="kb-a">Kiểm tra công tắc Wi-Fi trên máy đang bật, thử quên mạng (forget network) và kết nối lại, hoặc khởi động lại router nếu là mạng nội bộ.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Quên mật khẩu đăng nhập Windows</p>
+            <p class="kb-a">Không tự reset để tránh mất dữ liệu — gửi yêu cầu cho IT kèm tên máy/tên đăng nhập để được cấp lại mật khẩu.</p>
+          </div>
+        </details>
+
+        <details class="kb-category">
+          <summary>🖨️ Máy in</summary>
+          <div class="kb-item">
+            <p class="kb-q">Máy in không nhận lệnh in</p>
+            <p class="kb-a">Kiểm tra máy in đã bật nguồn và cáp USB/mạng đã cắm chắc, kiểm tra máy in có đang ở trạng thái "Offline" trong danh sách máy in trên máy tính không.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Máy in báo kẹt giấy</p>
+            <p class="kb-a">Mở nắp/khay máy in theo hướng dẫn trên thân máy, nhẹ nhàng kéo giấy bị kẹt theo chiều giấy đi ra, không kéo ngược. Tránh dùng lực mạnh làm rách giấy còn kẹt trong máy.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">In ra giấy trắng hoặc mờ, nhạt</p>
+            <p class="kb-a">Kiểm tra mực/hộp mực còn hay hết, chạy chức năng vệ sinh đầu in (cleaning) trong phần mềm điều khiển máy in.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Máy in báo lỗi hết mực/mực thấp</p>
+            <p class="kb-a">Thay hộp mực mới cùng loại với máy. Nếu không có mực dự phòng, gửi yêu cầu để IT/bộ phận mua sắm chuẩn bị.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Không thấy máy in trong danh sách trên máy tính</p>
+            <p class="kb-a">Kiểm tra máy in và máy tính có cùng mạng không, thử gỡ và cài lại driver máy in, hoặc khởi động lại máy in.</p>
+          </div>
+        </details>
+
+        <details class="kb-category">
+          <summary>🖱️ Thiết bị ngoại vi</summary>
+          <div class="kb-item">
+            <p class="kb-q">Chuột / bàn phím không hoạt động</p>
+            <p class="kb-a">Với thiết bị không dây: kiểm tra pin và công tắc bật/tắt. Với thiết bị có dây: cắm lại cổng USB, thử sang cổng USB khác trên máy.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Màn hình báo "No Signal" / không nhận tín hiệu</p>
+            <p class="kb-a">Kiểm tra cáp HDMI/VGA/DisplayPort đã cắm chắc ở cả hai đầu, thử rút cắm lại, hoặc thử một cáp/cổng khác trên máy.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Tai nghe / microphone không nhận âm thanh</p>
+            <p class="kb-a">Kiểm tra đã chọn đúng thiết bị âm thanh trong Cài đặt (Sound settings) của Windows, thử cắm sang cổng khác, kiểm tra dây có bị đứt ngầm không.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">USB / ổ cứng di động không nhận diện</p>
+            <p class="kb-a">Thử cắm sang cổng USB khác hoặc máy khác để xác định lỗi ở máy hay ở thiết bị. Có thể kiểm tra trong Disk Management xem ổ có được nhận nhưng chưa gán ký tự ổ đĩa không.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Webcam không hoạt động khi họp online</p>
+            <p class="kb-a">Kiểm tra quyền truy cập camera cho ứng dụng họp (Zoom/Teams) trong Cài đặt quyền riêng tư của Windows, và kiểm tra không có ứng dụng khác đang chiếm dụng camera.</p>
+          </div>
+        </details>
+      </div>
+    </details>
+  </nav>
+</aside>

@@ -1,0 +1,81 @@
+<button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Mở menu" aria-expanded="false" aria-controls="appSidebar">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<aside class="sidebar" id="appSidebar" aria-hidden="true">
+  <div class="sidebar-head">
+    <span class="sidebar-title">Menu</span>
+    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Đóng menu">✕</button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <details class="kb-root">
+      <summary class="kb-nav-btn">📖 Cẩm nang xử lý nội bộ</summary>
+
+      <div class="kb-body">
+        <p class="kb-hint">Tài liệu tham khảo nhanh cho nhân viên IT khi xử lý ticket.</p>
+
+        <details class="kb-category">
+          <summary>⏱️ SLA theo mức độ ưu tiên</summary>
+          <div class="kb-item">
+            <p class="kb-q">Khẩn cấp</p>
+            <p class="kb-a">Phản hồi trong 30 phút, xử lý xong trong 4 giờ làm việc. Ưu tiên xử lý trước mọi ticket khác.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Cao</p>
+            <p class="kb-a">Phản hồi trong 2 giờ, xử lý xong trong 1 ngày làm việc.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Trung bình</p>
+            <p class="kb-a">Phản hồi trong 4 giờ, xử lý xong trong 2 ngày làm việc.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Thấp</p>
+            <p class="kb-a">Phản hồi trong 1 ngày, xử lý xong trong 5 ngày làm việc.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-a" style="font-style: italic;">* Mốc thời gian mẫu — điều chỉnh theo chính sách thực tế của công ty.</p>
+          </div>
+        </details>
+
+        <details class="kb-category">
+          <summary>🛠️ Hướng dẫn xử lý theo loại yêu cầu</summary>
+          <div class="kb-item">
+            <p class="kb-q">Phần cứng</p>
+            <p class="kb-a">Xác nhận thiết bị, số serial (nếu có). Kiểm tra bảo hành trước khi thay linh kiện. Ghi lại linh kiện đã thay vào ticket.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Phần mềm</p>
+            <p class="kb-a">Xác nhận phiên bản OS/phần mềm, bước tái hiện lỗi. Kiểm tra log lỗi trước khi cài lại/gỡ cài đặt.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Mạng / Internet</p>
+            <p class="kb-a">Kiểm tra phạm vi ảnh hưởng (1 máy hay cả khu vực). Nếu ảnh hưởng nhiều người, báo ngay cho quản lý hạ tầng.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Tài khoản / Quyền truy cập</p>
+            <p class="kb-a">Xác minh danh tính người yêu cầu trước khi reset mật khẩu hoặc cấp quyền. Không cấp quyền vượt phạm vi công việc mà chưa có phê duyệt.</p>
+          </div>
+        </details>
+
+        <details class="kb-category">
+          <summary>🚨 Khi cần leo thang (escalate)</summary>
+          <div class="kb-item">
+            <p class="kb-q">Sự cố ảnh hưởng nhiều người / hệ thống lớn</p>
+            <p class="kb-a">Báo ngay cho IT Manager/Trưởng nhóm, không tự xử lý một mình nếu vượt quá thẩm quyền hoặc kiến thức.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Lỗi liên quan nhà cung cấp bên ngoài</p>
+            <p class="kb-a">Liên hệ đơn vị cung cấp thiết bị/dịch vụ (ISP, nhà cung cấp máy in, phần mềm bản quyền...) theo hợp đồng bảo trì đang có.</p>
+          </div>
+          <div class="kb-item">
+            <p class="kb-q">Nghi ngờ sự cố an ninh (virus, truy cập trái phép...)</p>
+            <p class="kb-a">Cách ly máy khỏi mạng ngay, không tự xoá dữ liệu, báo cáo cho quản lý an ninh thông tin trước khi xử lý tiếp.</p>
+          </div>
+        </details>
+      </div>
+    </details>
+  </nav>
+</aside>
