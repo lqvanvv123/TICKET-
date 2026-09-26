@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function openSidebar() {
     sidebar.classList.add("open");
     overlay.classList.add("open");
+    document.body.classList.add("sidebar-open");
     sidebar.setAttribute("aria-hidden", "false");
     openBtn.setAttribute("aria-expanded", "true");
   }
@@ -17,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeSidebar() {
     sidebar.classList.remove("open");
     overlay.classList.remove("open");
+    document.body.classList.remove("sidebar-open");
     sidebar.setAttribute("aria-hidden", "true");
     openBtn.setAttribute("aria-expanded", "false");
   }

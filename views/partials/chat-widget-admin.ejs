@@ -1,0 +1,27 @@
+<button type="button" class="chat-fab" id="chatFab" aria-label="Mở chat với người dùng">
+  💬
+  <span class="chat-fab-badge" id="chatUnreadBadge" data-zero="true">0</span>
+</button>
+
+<div class="chat-panel" id="chatPanel" aria-hidden="true">
+  <!-- Danh sách hội thoại -->
+  <div class="chat-panel-head" id="chatListHead">
+    <span>💬 Chat với người dùng</span>
+    <button type="button" class="chat-panel-close" id="chatPanelClose" aria-label="Đóng chat">✕</button>
+  </div>
+  <div class="chat-list" id="chatList">
+    <p class="chat-empty">Chưa có cuộc trò chuyện nào.</p>
+  </div>
+
+  <!-- Chi tiết 1 cuộc trò chuyện -->
+  <div class="chat-panel-head chat-detail-head" id="chatDetailHead" style="display: none;">
+    <button type="button" class="chat-back-btn" id="chatBackBtn" aria-label="Quay lại danh sách">‹</button>
+    <span id="chatDetailUsername">—</span>
+    <button type="button" class="chat-panel-close" id="chatPanelClose2" aria-label="Đóng chat">✕</button>
+  </div>
+  <div class="chat-messages" id="chatDetailMessages" style="display: none;"></div>
+  <form class="chat-input-row" id="chatDetailForm" style="display: none;">
+    <input type="text" id="chatDetailInput" placeholder="Nhập tin nhắn..." maxlength="2000" autocomplete="off" required>
+    <button type="submit" class="btn btn-primary chat-send-btn">Gửi</button>
+  </form>
+</div>

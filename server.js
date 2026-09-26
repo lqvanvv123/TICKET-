@@ -11,6 +11,7 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const adminRoutes = require("./routes/admin");
 const notificationRoutes = require("./routes/notifications");
+const chatRoutes = require("./routes/chat");
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use(authRoutes);
 app.use(userRoutes);
 app.use(adminRoutes);
 app.use(notificationRoutes);
+app.use(chatRoutes);
 
 app.get("/", (req, res) => res.redirect("/login"));
 
