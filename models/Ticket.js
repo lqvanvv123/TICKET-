@@ -65,6 +65,18 @@ const attachmentSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// Mỗi lần đổi trạng thái được lưu lại 1 bản ghi (ai đổi, từ đâu sang đâu, lúc nào)
+const statusHistorySchema = new mongoose.Schema(
+  {
+    from: { type: String, enum: [...Object.values(STATUS), null], default: null },
+    to: { type: String, enum: Object.values(STATUS), required: true },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    changedByName: { type: String, default: "" },
+    changedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const ticketSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -75,6 +87,7 @@ const ticketSchema = new mongoose.Schema(
     requestType: { type: String, enum: Object.values(REQUEST_TYPE), default: REQUEST_TYPE.OTHER },
     attachments: { type: [attachmentSchema], default: [] },
     resolvedAt: { type: Date, default: null },
+    statusHistory: { type: [statusHistorySchema], default: [] },
   },
   { timestamps: true }
 );

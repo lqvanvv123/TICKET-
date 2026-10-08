@@ -130,5 +130,19 @@
       },
     });
   </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/realtime.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script>
+    // Số liệu thống kê đổi theo thời gian thực: có thay đổi yêu cầu thì tải lại sau 0,6 giây (gộp nhiều sự kiện)
+    (function () {
+      let timer = null;
+      function scheduleReload() {
+        clearTimeout(timer);
+        timer = setTimeout(() => location.reload(), 600);
+      }
+      ["ticket:created", "ticket:updated", "ticket:deleted"].forEach((ev) => window.socket.on(ev, scheduleReload));
+    })();
+  </script>
 </body>
 </html>

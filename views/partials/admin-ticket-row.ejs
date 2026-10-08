@@ -1,0 +1,23 @@
+<tr data-ticket-id="<%= t._id %>">
+  <td class="ticket-id">#<%= t._id.toString().slice(-6) %></td>
+  <td><%= t.user ? t.user.username : 'N/A' %></td>
+  <td>
+    <div class="ticket-title"><%= t.title %></div>
+    <div class="ticket-desc"><%= t.description %></div>
+  </td>
+  <td><span class="type-badge type-<%= REQUEST_TYPE_SLUG[t.requestType] %>"><%= t.requestType %></span></td>
+  <td><span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span></td>
+  <td><%- include('attachments', { attachments: t.attachments }) %></td>
+  <td>
+    <span class="stamp stamp-<%= STATUS_SLUG[t.status] %> js-stamp"><%= t.status %></span>
+    <div><button type="button" class="history-btn" data-history="<%= t._id %>">🕒 Lịch sử trạng thái</button></div>
+  </td>
+  <td>
+    <select class="js-status-select" data-id="<%= t._id %>" data-prev="<%= t.status %>" aria-label="Đổi trạng thái yêu cầu #<%= t._id.toString().slice(-6) %>">
+      <% Object.values(STATUS).forEach(st => { %>
+        <option value="<%= st %>" <%= t.status === st ? 'selected' : '' %>><%= st %></option>
+      <% }) %>
+    </select>
+    <div><button type="button" class="btn-delete-ticket" data-delete-ticket="<%= t._id %>">🗑 Xóa yêu cầu</button></div>
+  </td>
+</tr>

@@ -1,0 +1,22 @@
+<div class="board-card" draggable="true" data-id="<%= t._id %>">
+  <div class="board-card-top">
+    <span class="ticket-id">#<%= t._id.toString().slice(-6) %></span>
+    <span class="board-card-top-right">
+      <span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span>
+      <button type="button" class="card-del" data-delete-ticket="<%= t._id %>" aria-label="Xóa yêu cầu" title="Xóa yêu cầu">🗑</button>
+    </span>
+  </div>
+  <div class="board-card-title"><%= t.title %></div>
+  <div class="board-card-desc"><%= t.description %></div>
+  <div class="board-card-meta">
+    <span class="type-badge type-<%= REQUEST_TYPE_SLUG[t.requestType] %>"><%= t.requestType %></span>
+    <% if (t.attachments && t.attachments.length) { %>
+      <span class="attach-count">📎 <%= t.attachments.length %></span>
+    <% } %>
+  </div>
+  <%- include('attachments', { attachments: t.attachments }) %>
+  <div class="board-card-footer">
+    <span><%= t.user ? t.user.username : 'N/A' %></span>
+    <span class="ticket-date"><%= new Date(t.createdAt).toLocaleDateString('vi-VN') %></span>
+  </div>
+</div>

@@ -4,16 +4,16 @@ const multer = require("multer");
 const Ticket = require("../models/Ticket");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const realtime = require("../utils/realtime");
 const { requireLogin, requireRole } = require("../middleware/auth");
 const { upload } = require("../middleware/upload");
 
 // Trang chính của User: form gửi lỗi + lịch sử yêu cầu
 router.get("/user", requireLogin, requireRole("user"), async (req, res) => {
   const tickets = await Ticket.find({ user: req.session.user.id }).sort({ createdAt: -1 });
-  const notifications = await Notification.find({
-    recipient: req.session.user.id,
-    isRead: false,
-  }).sort({ createdAt: -1 });
+  const notifications = await Notification.find({ recipient: req.session.user.id })
+    .sort({ createdAt: -1 })
+    .limit(50);
 
   res.render("user", {
     user: req.session.user,
@@ -78,18 +78,29 @@ router.post(
       priority: validPriority,
       requestType: validType,
       attachments,
+      statusHistory: [
+        {
+          from: null,
+          to: Ticket.STATUS.NEW,
+          changedBy: req.session.user.id,
+          changedByName: req.session.user.username,
+        },
+      ],
     });
 
     const admins = await User.find({ role: "admin" });
     if (admins.length) {
-      await Notification.insertMany(
-        admins.map((admin) => ({
-          recipient: admin._id,
-          ticket: ticket._id,
-          message: `Người dùng "${req.session.user.username}" vừa gửi yêu cầu mới (${validPriority}): "${title}"`,
-        }))
+      await realtime.notify(
+        admins.map((a) => a._id),
+        ticket._id,
+        `Người dùng "${req.session.user.username}" vừa gửi yêu cầu mới (${validPriority}): "${title}"`
       );
     }
+
+    // Đẩy yêu cầu mới (đã render sẵn dòng bảng + thẻ Kanban) tới các admin đang online
+    await ticket.populate("user", "username");
+    const html = await realtime.renderAdminTicket(ticket);
+    realtime.toAdmins("ticket:created", { id: ticket._id, status: ticket.status, ...html });
 
     res.redirect("/user");
   }

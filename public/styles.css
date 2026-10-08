@@ -1173,3 +1173,283 @@ td select {
     bottom: 16px;
   }
 }
+
+/* ============ Bảng thông báo (bấm chuông) ============ */
+.notif-wrap {
+  position: relative;
+}
+.bell-btn {
+  cursor: pointer;
+}
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card), 0 12px 28px rgba(31, 36, 34, 0.14);
+  z-index: 60;
+}
+.notif-panel[hidden] {
+  display: none;
+}
+.notif-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule-strong);
+  font-family: var(--font-head);
+}
+.notif-panel-tools {
+  display: flex;
+  gap: 12px;
+}
+.notif-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.notif-link:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.notif-link-danger:hover {
+  color: var(--stamp-new);
+  border-color: var(--stamp-new);
+}
+.notif-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule);
+  border-left: 3px solid transparent;
+  cursor: default;
+}
+.notif-item:last-of-type {
+  border-bottom: none;
+}
+.notif-item.unread {
+  background: var(--stamp-progress-bg);
+  border-left-color: var(--stamp-progress);
+  cursor: pointer;
+}
+.notif-item-body {
+  min-width: 0;
+}
+.notif-item .notif-text {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.notif-item.unread .notif-text {
+  color: var(--ink);
+  font-weight: 500;
+}
+.notif-del {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.notif-del:hover {
+  color: var(--stamp-new);
+  border-color: var(--stamp-new);
+  background: var(--stamp-new-bg);
+}
+.notif-empty {
+  padding: 22px 14px;
+  text-align: center;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+.notif-empty[hidden] {
+  display: none;
+}
+
+/* ============ Lịch sử trạng thái (admin) ============ */
+.history-btn {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--rule-strong);
+}
+.history-btn:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.history-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(31, 36, 34, 0.45);
+}
+.history-modal[hidden] {
+  display: none;
+}
+.history-box {
+  width: 460px;
+  max-width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card), 0 16px 40px rgba(31, 36, 34, 0.25);
+  padding: 18px 20px;
+}
+.history-box-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.history-box-head h3 {
+  margin: 0;
+}
+.history-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.history-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.history-close:hover {
+  color: var(--ink);
+}
+.history-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--rule-strong);
+}
+.history-timeline li {
+  position: relative;
+  padding: 0 0 16px 14px;
+}
+.history-timeline li:last-child {
+  padding-bottom: 0;
+}
+.history-timeline li::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--ink-soft);
+}
+.history-timeline li:first-child::before {
+  background: var(--ink-soft);
+}
+.history-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+.history-meta {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* ============ Thời gian thực / xóa yêu cầu ============ */
+.btn-delete-ticket {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--rule-strong);
+}
+.btn-delete-ticket:hover:not(:disabled) {
+  color: var(--stamp-new);
+  border-color: var(--stamp-new);
+}
+.btn-delete-ticket:disabled,
+.card-del:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.board-card-top-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-del {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 1px 4px;
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+.card-del:hover:not(:disabled) {
+  opacity: 1;
+  border-color: var(--stamp-new);
+  background: var(--stamp-new-bg);
+}
+@keyframes rowFlash {
+  from { background-color: var(--stamp-progress-bg); }
+  to { background-color: transparent; }
+}
+tr.row-flash td {
+  animation: rowFlash 1.8s ease-out;
+}
+.board-card.row-flash {
+  animation: cardFlash 1.8s ease-out;
+}
+@keyframes cardFlash {
+  from { box-shadow: 0 0 0 3px var(--stamp-progress); }
+  to { box-shadow: var(--shadow-card); }
+}

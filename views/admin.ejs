@@ -27,40 +27,37 @@
               <th>Cập nhật</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="ticketTbody">
             <% tickets.forEach(t => { %>
-              <tr>
-                <td class="ticket-id">#<%= t._id.toString().slice(-6) %></td>
-                <td><%= t.user ? t.user.username : 'N/A' %></td>
-                <td>
-                  <div class="ticket-title"><%= t.title %></div>
-                  <div class="ticket-desc"><%= t.description %></div>
-                </td>
-                <td><span class="type-badge type-<%= REQUEST_TYPE_SLUG[t.requestType] %>"><%= t.requestType %></span></td>
-                <td><span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span></td>
-                <td><%- include('partials/attachments', { attachments: t.attachments }) %></td>
-                <td><span class="stamp stamp-<%= STATUS_SLUG[t.status] %>"><%= t.status %></span></td>
-                <td>
-                  <form action="/admin/ticket/<%= t._id %>" method="POST">
-                    <select name="status" onchange="this.form.submit()" aria-label="Đổi trạng thái yêu cầu #<%= t._id.toString().slice(-6) %>">
-                      <option value="<%= STATUS.NEW %>" <%= t.status === STATUS.NEW ? 'selected' : '' %>><%= STATUS.NEW %></option>
-                      <option value="<%= STATUS.IN_PROGRESS %>" <%= t.status === STATUS.IN_PROGRESS ? 'selected' : '' %>><%= STATUS.IN_PROGRESS %></option>
-                      <option value="<%= STATUS.DONE %>" <%= t.status === STATUS.DONE ? 'selected' : '' %>><%= STATUS.DONE %></option>
-                    </select>
-                  </form>
-                </td>
-              </tr>
+              <%- include('partials/admin-ticket-row', { t }) %>
             <% }) %>
             <% if (tickets.length === 0) { %>
-              <tr class="empty-row"><td colspan="8">Chưa có yêu cầu nào được gửi.</td></tr>
+              <tr class="empty-row" id="emptyRow"><td colspan="8">Chưa có yêu cầu nào được gửi.</td></tr>
             <% } %>
           </tbody>
         </table>
       </div>
     </div>
   </div>
+  <div class="history-modal" id="historyModal" hidden>
+    <div class="history-box" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <div class="history-box-head">
+        <div>
+          <h3 id="historyTitle">Lịch sử trạng thái</h3>
+          <p class="history-sub" id="historySub"></p>
+        </div>
+        <button type="button" class="history-close" id="historyClose" aria-label="Đóng">✕</button>
+      </div>
+      <ol class="history-timeline" id="historyList"></ol>
+    </div>
+  </div>
   <%- include('partials/chat-widget-admin') %>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/realtime.js"></script>
   <script src="/js/notifications.js"></script>
+  <script src="/js/admin-actions.js"></script>
+  <script src="/js/admin-list.js"></script>
+  <script src="/js/history.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/chat-admin.js"></script>
 </body>
