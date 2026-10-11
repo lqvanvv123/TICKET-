@@ -13,6 +13,7 @@ const adminRoutes = require("./routes/admin");
 const notificationRoutes = require("./routes/notifications");
 const chatRoutes = require("./routes/chat");
 const adminUserRoutes = require("./routes/admin-users");
+const exportRoutes = require("./routes/export");
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(adminRoutes);
 app.use(notificationRoutes);
 app.use(chatRoutes);
 app.use(adminUserRoutes);
+app.use(exportRoutes);
 
 app.get("/", (req, res) => res.redirect("/login"));
 

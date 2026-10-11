@@ -13,6 +13,25 @@
 
     <div class="card">
       <h3>Yêu cầu cần xử lý</h3>
+
+      <form class="export-bar" action="/admin/export/tickets.xlsx" method="GET">
+        <span class="export-label">📊 Xuất Excel</span>
+        <select name="status" aria-label="Lọc theo trạng thái">
+          <option value="">Tất cả trạng thái</option>
+          <% Object.values(STATUS).forEach(s => { %><option value="<%= s %>"><%= s %></option><% }) %>
+        </select>
+        <select name="priority" aria-label="Lọc theo mức độ ưu tiên">
+          <option value="">Tất cả mức ưu tiên</option>
+          <% Object.values(PRIORITY).forEach(p => { %><option value="<%= p %>"><%= p %></option><% }) %>
+        </select>
+        <select name="type" aria-label="Lọc theo loại yêu cầu">
+          <option value="">Tất cả loại yêu cầu</option>
+          <% Object.values(REQUEST_TYPE).forEach(r => { %><option value="<%= r %>"><%= r %></option><% }) %>
+        </select>
+        <label class="export-date">Từ <input type="date" name="from"></label>
+        <label class="export-date">Đến <input type="date" name="to"></label>
+        <button type="submit" class="btn btn-primary export-btn">Tải file .xlsx</button>
+      </form>
       <div class="table-scroll">
         <table>
           <thead>

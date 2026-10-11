@@ -69,6 +69,7 @@
         </select>
         <button type="submit" class="btn btn-ghost">Lọc</button>
         <% if (q || roleFilter) { %> <a href="/admin/users" class="btn btn-ghost">Xoá lọc</a> <% } %>
+        <a href="/admin/export/users.xlsx?q=<%= encodeURIComponent(q) %>&role=<%= encodeURIComponent(roleFilter) %>" class="btn btn-ghost">📊 Xuất Excel</a>
       </form>
 
       <div class="table-scroll">
