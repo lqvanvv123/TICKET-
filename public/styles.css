@@ -691,6 +691,94 @@ td select {
   border-top: 1px dashed var(--rule-strong);
 }
 
+/* ============ Quản lý người dùng (admin) ============ */
+.success-box {
+  background: var(--stamp-done-bg);
+  color: var(--stamp-done);
+  border: 1px solid var(--stamp-done);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+}
+.users-stats {
+  grid-template-columns: repeat(3, 1fr);
+}
+.user-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.user-filter input[type="search"] {
+  flex: 1;
+  min-width: 180px;
+}
+.user-filter select {
+  width: auto;
+}
+.user-filter .btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.user-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--stamp-new);
+  border: 1px solid var(--stamp-new);
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+.btn-danger:hover {
+  background: var(--stamp-new-bg);
+}
+.pw-reset summary {
+  list-style: none;
+  display: inline-block;
+}
+.pw-reset summary::-webkit-details-marker {
+  display: none;
+}
+.pw-reset-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.pw-reset-form input {
+  width: 150px;
+  padding: 6px 8px;
+}
+.pw-reset-form .btn-primary {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+.role-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 4px 9px;
+  border-radius: 2px;
+  color: var(--stamp-progress);
+  background: var(--stamp-progress-bg);
+}
+.me-tag {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--muted);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 /* ============ Sidebar (Lỗi thường gặp) ============ */
 .sidebar-toggle {
   position: fixed;
@@ -1150,7 +1238,8 @@ td select {
   .board {
     grid-template-columns: 1fr;
   }
-  .stat-grid {
+  .stat-grid,
+  .users-stats {
     grid-template-columns: repeat(2, 1fr);
   }
   .chart-grid {

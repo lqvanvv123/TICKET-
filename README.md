@@ -10,6 +10,7 @@ Database: MongoDB (Mongoose)
 - Đính kèm file (ảnh, PDF, Word, txt) — tối đa 5 file/ticket, mỗi file ≤ 5MB.
 - Bảng Kanban cho admin (`/admin/board`): kéo-thả ticket giữa 3 cột trạng thái để đổi trạng thái ngay lập tức.
 - Dashboard thống kê cho admin (`/admin/dashboard`): tổng số ticket, số đang mở/đã xong, thời gian xử lý trung bình, biểu đồ theo trạng thái/độ ưu tiên/loại yêu cầu, xu hướng 14 ngày gần nhất.
+- Quản lý người dùng cho admin (`/admin/users`): tìm kiếm/lọc theo vai trò, tạo tài khoản, đổi vai trò Người dùng ↔ Admin IT, đặt lại mật khẩu, xoá tài khoản (kèm yêu cầu, file đính kèm, thông báo, chat của tài khoản đó). Không thể tự đổi vai trò hoặc tự xoá chính mình.
 - Thanh menu trượt bên trái: "Lỗi thường gặp" + "Liên hệ IT trực tiếp" (bên user), "Cẩm nang xử lý nội bộ" (bên admin). Trên màn hình rộng, sidebar đẩy nội dung chính sang phải khi mở, thu lại khi đóng; nội dung chính luôn tràn hết chiều rộng còn lại.
 - Chat trực tiếp giữa user và team IT (nút tròn góc dưới-phải, giống UltraViewer): 1 cuộc trò chuyện/user, admin xem được danh sách hội thoại của tất cả user. Cập nhật bằng polling (tự làm mới vài giây/lần), không cần cài thêm gói realtime.
 

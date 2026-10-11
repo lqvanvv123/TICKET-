@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Quản lý người dùng — Bàn hỗ trợ IT</title>
+</head>
+<body>
+  <%- include('partials/admin-sidebar') %>
+  <div class="container has-sidebar">
+    <%- include('partials/admin-header', { pageTitle: 'Quản lý người dùng' }) %>
+
+    <% if (flashMsg) { %> <p class="success-box"><%= flashMsg %></p> <% } %>
+    <% if (flashError) { %> <p class="error-box"><%= flashError %></p> <% } %>
+
+    <div class="stat-grid users-stats">
+      <div class="card stat-card">
+        <span class="stat-label">Tổng tài khoản</span>
+        <span class="stat-value"><%= totalUsers + totalAdmins %></span>
+      </div>
+      <div class="card stat-card">
+        <span class="stat-label">Người dùng</span>
+        <span class="stat-value"><%= totalUsers %></span>
+      </div>
+      <div class="card stat-card">
+        <span class="stat-label">Admin IT</span>
+        <span class="stat-value"><%= totalAdmins %></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <details class="new-ticket-toggle">
+        <summary class="new-ticket-summary">➕ Tạo tài khoản mới</summary>
+        <div class="new-ticket-body">
+          <form action="/admin/users" method="POST">
+            <div class="field-row">
+              <div class="field">
+                <label for="nu-username">Tên đăng nhập</label>
+                <input type="text" id="nu-username" name="username" minlength="3" maxlength="30" required autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="nu-password">Mật khẩu (tối thiểu 6 ký tự)</label>
+                <input type="password" id="nu-password" name="password" minlength="6" required autocomplete="new-password">
+              </div>
+              <div class="field">
+                <label for="nu-role">Vai trò</label>
+                <select id="nu-role" name="role">
+                  <option value="user" selected>Người dùng</option>
+                  <option value="admin">Admin IT</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: auto; padding-left: 22px; padding-right: 22px;">Tạo tài khoản</button>
+          </form>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>Danh sách tài khoản</h3>
+
+      <form class="user-filter" action="/admin/users" method="GET">
+        <input type="search" name="q" value="<%= q %>" placeholder="Tìm theo tên đăng nhập..." aria-label="Tìm theo tên đăng nhập">
+        <select name="role" aria-label="Lọc theo vai trò">
+          <option value="">Tất cả vai trò</option>
+          <option value="user" <%= roleFilter === 'user' ? 'selected' : '' %>>Người dùng</option>
+          <option value="admin" <%= roleFilter === 'admin' ? 'selected' : '' %>>Admin IT</option>
+        </select>
+        <button type="submit" class="btn btn-ghost">Lọc</button>
+        <% if (q || roleFilter) { %> <a href="/admin/users" class="btn btn-ghost">Xoá lọc</a> <% } %>
+      </form>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Tên đăng nhập</th>
+              <th>Vai trò</th>
+              <th>Yêu cầu (đang mở / tổng)</th>
+              <th>Ngày tạo</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(u => {
+                 const isMe = String(u._id) === String(user.id);
+                 const c = countsById[String(u._id)] || { total: 0, open: 0 }; %>
+              <tr>
+                <td>
+                  <div class="ticket-title"><%= u.username %> <% if (isMe) { %><span class="me-tag">bạn</span><% } %></div>
+                </td>
+                <td>
+                  <% if (isMe) { %>
+                    <span class="role-badge role-admin">Admin IT</span>
+                  <% } else { %>
+                    <form action="/admin/users/<%= u._id %>/role" method="POST">
+                      <select name="role" onchange="this.form.submit()" aria-label="Đổi vai trò của <%= u.username %>">
+                        <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>Người dùng</option>
+                        <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin IT</option>
+                      </select>
+                    </form>
+                  <% } %>
+                </td>
+                <td class="ticket-id"><%= c.open %> / <%= c.total %></td>
+                <td class="ticket-date"><%= new Date(u.createdAt).toLocaleDateString('vi-VN') %></td>
+                <td>
+                  <div class="user-actions">
+                    <details class="pw-reset">
+                      <summary class="btn btn-ghost">Đặt lại MK</summary>
+                      <form action="/admin/users/<%= u._id %>/password" method="POST" class="pw-reset-form">
+                        <input type="password" name="password" placeholder="Mật khẩu mới" minlength="6" required autocomplete="new-password">
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                      </form>
+                    </details>
+                    <% if (!isMe) { %>
+                      <form action="/admin/users/<%= u._id %>/delete" method="POST" data-username="<%= u.username %>"
+                            onsubmit="return confirm('Xoá tài khoản &quot;' + this.dataset.username + '&quot;?\n\nToàn bộ yêu cầu, file đính kèm, thông báo và tin nhắn chat của tài khoản này cũng sẽ bị xoá và không thể khôi phục.');">
+                        <button type="submit" class="btn btn-danger">Xoá</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+            <% if (users.length === 0) { %>
+              <tr class="empty-row"><td colspan="5">Không tìm thấy tài khoản nào.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/chat-widget-admin') %>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/chat-admin.js"></script>
+</body>
+</html>
