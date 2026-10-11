@@ -882,6 +882,25 @@ td select {
 }
 
 /* Nút menu cấp 1 trong sidebar (VD: "Lỗi thường gặp") */
+.sidebar-link {
+  display: block;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.sidebar-link:hover {
+  background: var(--paper);
+}
+.sidebar-link.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
 .kb-root {
   margin-bottom: 8px;
 }
