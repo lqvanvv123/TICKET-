@@ -1,0 +1,32 @@
+<div class="notif-wrap" id="notifWrap">
+  <button class="bell-btn" type="button" id="bellBtn" aria-label="Thông báo" aria-haspopup="true" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round"/>
+    </svg>
+    <% const unreadCount = notifications.filter(n => !n.isRead).length; %>
+    <span class="bell-count" id="notif-count" data-zero="<%= unreadCount === 0 %>"><%= unreadCount %></span>
+  </button>
+
+  <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Bảng thông báo" hidden>
+    <div class="notif-panel-head">
+      <strong>Thông báo</strong>
+      <div class="notif-panel-tools">
+        <button type="button" class="notif-link" id="notifReadAll">Đã đọc tất cả</button>
+        <button type="button" class="notif-link notif-link-danger" id="notifClearAll">Xóa tất cả</button>
+      </div>
+    </div>
+    <div class="notif-list" id="notifList">
+      <% notifications.forEach(n => { %>
+        <div class="notif-item <%= n.isRead ? '' : 'unread' %>" data-id="<%= n._id %>">
+          <div class="notif-item-body">
+            <span class="notif-text"><%= n.message %></span>
+            <span class="notif-time"><%= new Date(n.createdAt).toLocaleString('vi-VN') %></span>
+          </div>
+          <button type="button" class="notif-del" data-del aria-label="Xóa thông báo" title="Xóa thông báo">✕</button>
+        </div>
+      <% }) %>
+      <p class="notif-empty" id="notifEmpty" <%- notifications.length ? 'hidden' : '' %>>Không có thông báo nào.</p>
+    </div>
+  </div>
+</div>

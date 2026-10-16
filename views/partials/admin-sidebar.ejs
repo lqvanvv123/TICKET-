@@ -11,7 +11,9 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a href="/admin/users" class="sidebar-link <%= typeof activeTab !== 'undefined' && activeTab === 'users' ? 'active' : '' %>">👥 Quản lý người dùng</a>
+    <% if (user.role === 'admin') { %>
+      <a href="/admin/users" class="sidebar-link <%= typeof activeTab !== 'undefined' && activeTab === 'users' ? 'active' : '' %>">👥 Quản lý người dùng</a>
+    <% } %>
 
     <details class="kb-root">
       <summary class="kb-nav-btn">📖 Cẩm nang xử lý nội bộ</summary>

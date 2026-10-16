@@ -1,0 +1,35 @@
+<tr class="status-<%= STATUS_SLUG[t.status] %>" data-ticket-id="<%= t._id %>" data-assignee-id="<%= t.assignedTo ? String(t.assignedTo._id || t.assignedTo) : '' %>">
+  <td class="ticket-id">#<%= t._id.toString().slice(-6) %></td>
+  <td><%= t.user ? t.user.username : 'N/A' %></td>
+  <td>
+    <div class="ticket-title"><a href="/tickets/<%= t._id %>"><%= t.title %></a></div>
+    <div class="ticket-desc"><%= t.description %></div>
+  </td>
+  <td><span class="type-badge type-<%= REQUEST_TYPE_SLUG[t.requestType] %>"><%= t.requestType %></span></td>
+  <td><span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span></td>
+  <td><%- include('attachments', { attachments: t.attachments }) %></td>
+  <td>
+    <span class="js-assignee"><%= t.assignedTo ? t.assignedTo.username : 'Chưa phân công' %></span>
+    <% if (user.role === 'admin' && t.status !== STATUS.DONE) { %>
+      <div><a href="/tickets/<%= t._id %>">Phân công</a></div>
+    <% } else if (user.role === 'staff' && !t.assignedTo && t.status !== STATUS.DONE) { %>
+      <button class="btn btn-ghost js-claim-ticket" type="button" data-id="<%= t._id %>">Nhận xử lý</button>
+    <% } %>
+  </td>
+  <td>
+    <span class="stamp stamp-<%= STATUS_SLUG[t.status] %> js-stamp"><%= t.status %></span>
+    <div><button type="button" class="history-btn" data-history="<%= t._id %>">🕒 Lịch sử trạng thái</button></div>
+  </td>
+  <td>
+    <% if (t.status !== STATUS.DONE) { %>
+    <select class="js-status-select" data-id="<%= t._id %>" data-prev="<%= t.status %>" <%= user.role === 'staff' && (!t.assignedTo || String(t.assignedTo._id || t.assignedTo) !== String(user.id || '')) ? 'disabled' : '' %> aria-label="Đổi trạng thái yêu cầu #<%= t._id.toString().slice(-6) %>">
+      <% Object.values(STATUS).forEach(st => { %>
+        <option value="<%= st %>" <%= t.status === st ? 'selected' : '' %>><%= st %></option>
+      <% }) %>
+    </select>
+    <% } %>
+    <% if (user.role === 'admin') { %>
+      <div><button type="button" class="btn-delete-ticket" data-delete-ticket="<%= t._id %>">🗑 Xóa yêu cầu</button></div>
+    <% } %>
+  </td>
+</tr>

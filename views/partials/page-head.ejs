@@ -1,0 +1,15 @@
+<%# Tiêu đề khu vực dùng chung cho 2 trang admin: Danh sách / Thống kê %>
+<div class="page-head">
+  <div class="page-head-text">
+    <h3 class="page-head-title"><%= title %></h3>
+    <p class="page-head-hint"><%= hint %></p>
+  </div>
+  <div class="page-head-side">
+    <% if (typeof count !== 'undefined') { %>
+      <span class="count-pill"><b id="pageCount"><%= count %></b> <%= typeof countLabel !== 'undefined' ? countLabel : 'yêu cầu' %></span>
+    <% } %>
+    <span class="live-pill" id="livePill" data-state="connecting" title="Trạng thái kết nối thời gian thực">
+      <span class="live-dot"></span><span class="live-text">Đang kết nối</span>
+    </span>
+  </div>
+</div>

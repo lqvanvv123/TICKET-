@@ -1,0 +1,7 @@
+<nav class="ticket-pagination" aria-label="Phân trang yêu cầu">
+  <span><%= pagination.total %> kết quả · Trang <%= pagination.page %>/<%= pagination.pages %></span>
+  <% if (pagination.page > 1) { %><a class="btn btn-ghost" href="<%= filterUrl(pagination.page - 1) %>">← Trước</a><% } %>
+  <% if (pagination.page < pagination.pages) { %><a class="btn btn-ghost" href="<%= filterUrl(pagination.page + 1) %>">Tiếp →</a><% } %>
+  <a class="btn btn-ghost" href="<%= filterUrl(pagination.page) %>">Làm mới</a>
+</nav>
+<p id="ticketListChanged" class="ticket-change-notice" role="status" hidden>Danh sách có thay đổi. Bấm “Làm mới” để cập nhật bộ lọc, số kết quả và phân trang.</p>

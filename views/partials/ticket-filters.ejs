@@ -1,0 +1,45 @@
+<form class="ticket-filters" action="<%= filterAction %>" method="GET" aria-label="Lọc yêu cầu">
+  <div class="field filter-search">
+    <label for="filterQ">Tìm yêu cầu</label>
+    <input id="filterQ" name="q" type="search" maxlength="100" value="<%= filters.q %>" placeholder="Tiêu đề, mô tả hoặc mã đầy đủ">
+  </div>
+  <% for (const [key, label, values] of [['status', 'Trạng thái', STATUS], ['priority', 'Ưu tiên', PRIORITY], ['type', 'Loại yêu cầu', REQUEST_TYPE]]) { %>
+    <div class="field">
+      <label for="filter-<%= key %>"><%= label %></label>
+      <select id="filter-<%= key %>" name="<%= key %>">
+        <option value="">Tất cả</option>
+        <% Object.values(values).forEach(value => { %>
+          <option value="<%= value %>" <%= filters[key] === value ? 'selected' : '' %>><%= value %></option>
+        <% }) %>
+      </select>
+    </div>
+  <% } %>
+  <% if (user.role === 'admin') { %>
+    <div class="field">
+      <label for="filterRequester">Người gửi</label>
+      <select id="filterRequester" name="requester">
+        <option value="">Tất cả người gửi</option>
+        <% requesters.forEach(person => { %>
+          <option value="<%= person._id %>" <%= filters.requester === String(person._id) ? 'selected' : '' %>><%= person.username %></option>
+        <% }) %>
+      </select>
+    </div>
+  <% } %>
+  <div class="field">
+    <label for="filterAssignee">Người phụ trách</label>
+    <select id="filterAssignee" name="assignee">
+      <option value="">Tất cả</option>
+      <option value="unassigned" <%= filters.assignee === 'unassigned' ? 'selected' : '' %>>Chưa phân công</option>
+      <% if (user.role === 'admin') { %><option value="mine" <%= filters.assignee === 'mine' ? 'selected' : '' %>>Việc của tôi</option><% } %>
+      <% admins.forEach(person => { %>
+        <option value="<%= person._id %>" <%= filters.assignee === String(person._id) ? 'selected' : '' %>><%= person.username %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field"><label for="filterFrom">Từ ngày</label><input id="filterFrom" type="date" name="from" value="<%= filters.from %>"></div>
+  <div class="field"><label for="filterTo">Đến ngày</label><input id="filterTo" type="date" name="to" value="<%= filters.to %>"></div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Áp dụng</button>
+    <a class="btn btn-ghost" href="<%= filterAction %>">Xóa lọc</a>
+  </div>
+</form>

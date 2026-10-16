@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
 const path = require("path");
+const http = require("http");
 const bcrypt = require("bcryptjs");
 
 const connectDB = require("./config/db");
@@ -14,6 +15,8 @@ const notificationRoutes = require("./routes/notifications");
 const chatRoutes = require("./routes/chat");
 const adminUserRoutes = require("./routes/admin-users");
 const exportRoutes = require("./routes/export");
+const ticketRoutes = require("./routes/tickets");
+const realtime = require("./utils/realtime");
 
 const app = express();
 
@@ -32,13 +35,12 @@ async function seedAdmin() {
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "secret-key",
-    resave: false,
-    saveUninitialized: true,
-  }),
-);
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET || "secret-key",
+  resave: false,
+  saveUninitialized: true,
+});
+app.use(sessionMiddleware);
 
 app.use(authRoutes);
 app.use(userRoutes);
@@ -47,8 +49,14 @@ app.use(notificationRoutes);
 app.use(chatRoutes);
 app.use(adminUserRoutes);
 app.use(exportRoutes);
+app.use(ticketRoutes);
 
 app.get("/", (req, res) => res.redirect("/login"));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server chạy tại http://localhost:${PORT}`));
+// Socket.IO chạy chung cổng với Express và dùng chung session đăng nhập
+const server = http.createServer(app);
+realtime.init(server, sessionMiddleware);
+server.listen(PORT, () =>
+  console.log(`Server chạy tại http://localhost:${PORT}`),
+);

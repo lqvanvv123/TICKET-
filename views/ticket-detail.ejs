@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/tickets.css">
+  <title><%= ticket.title %> — Bàn hỗ trợ IT</title>
+</head>
+<body data-ticket-detail="<%= ticket._id %>" data-role="<%= user.role %>" data-user-id="<%= user.id %>">
+  <%- include(user.role !== 'user' ? 'partials/admin-sidebar' : 'partials/sidebar') %>
+  <main class="container container-wide has-sidebar">
+    <div class="topbar">
+      <div><p class="topbar-eyebrow">Bàn hỗ trợ IT</p><h2>Chi tiết yêu cầu</h2></div>
+      <div class="topbar-actions"><span class="user-tag"><%= user.username %></span><a class="logout-link" href="/logout">Đăng xuất</a></div>
+    </div>
+    <a class="ticket-back" href="<%= user.role !== 'user' ? '/admin' : '/user' %>">← Danh sách yêu cầu</a>
+    <% if (message) { %><p class="success-box" role="status"><%= message %></p><% } %>
+    <p id="detailFeedback" class="ticket-change-notice" role="status" hidden></p>
+    <div class="ticket-detail-grid">
+      <section class="card">
+        <p class="ticket-id">#<%= String(ticket._id).slice(-6) %></p>
+        <h1 class="ticket-detail-title"><%= ticket.title %></h1>
+        <div class="ticket-detail-badges">
+          <span class="stamp stamp-<%= STATUS_SLUG[ticket.status] %>" id="detailStatus"><%= ticket.status %></span>
+          <span class="prio-badge prio-<%= PRIORITY_SLUG[ticket.priority] %>"><%= ticket.priority %></span>
+          <span class="type-badge"><%= ticket.requestType %></span>
+        </div>
+        <h3>Mô tả</h3>
+        <p class="ticket-detail-description"><%= ticket.description %></p>
+        <h3>File đính kèm (<%= (ticket.attachments || []).length %>)</h3>
+        <% if ((ticket.attachments || []).length) { %>
+          <%- include('partials/attachments', { attachments: ticket.attachments }) %>
+        <% } else { %><p>Không có file đính kèm.</p><% } %>
+      </section>
+      <aside class="card ticket-detail-meta">
+        <h3>Thông tin xử lý</h3>
+        <dl>
+          <dt>Mã yêu cầu đầy đủ</dt><dd><code><%= ticket._id %></code></dd>
+          <dt>Người gửi</dt><dd><%= ticket.user ? ticket.user.username : 'Tài khoản đã xóa' %></dd>
+          <dt>Người phụ trách</dt><dd id="detailAssignee"><%= ticket.assignedTo ? ticket.assignedTo.username : 'Chưa phân công' %></dd>
+          <dt>Ngày tạo</dt><dd><%= new Date(ticket.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) %></dd>
+          <dt>Cập nhật gần nhất</dt><dd><%= new Date(ticket.updatedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) %></dd>
+          <dt>Hoàn thành</dt><dd id="detailResolved"><%= ticket.resolvedAt ? new Date(ticket.resolvedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '—' %></dd>
+        </dl>
+        <% if (user.role === 'admin' && ticket.status !== STATUS.DONE) { %>
+          <form action="/tickets/<%= ticket._id %>/assignee" method="POST" data-assignment-form>
+            <div class="field"><label for="assignedTo">Phân công cho IT</label>
+              <select id="assignedTo" name="assignedTo">
+                <option value="">Chưa phân công</option>
+                <% admins.forEach(person => { %>
+                  <option value="<%= person._id %>" <%= ticket.assignedTo && String(ticket.assignedTo._id) === String(person._id) ? 'selected' : '' %>><%= person.username %></option>
+                <% }) %>
+              </select>
+            </div>
+            <button class="btn btn-primary" type="submit">Lưu phân công</button>
+          </form>
+        <% } else if (user.role === 'staff' && !ticket.assignedTo && ticket.status !== STATUS.DONE) { %>
+          <form action="/tickets/<%= ticket._id %>/assignee" method="POST" data-assignment-form>
+            <input type="hidden" name="assignedTo" value="<%= user.id %>">
+            <button class="btn btn-primary" type="submit">Nhận xử lý yêu cầu</button>
+          </form>
+        <% } %>
+        <% if (user.role !== 'user' && ticket.status !== STATUS.DONE) { %>
+          <form action="/admin/ticket/<%= ticket._id %>" method="POST" data-status-form>
+            <div class="field"><label for="detailStatusSelect">Trạng thái</label>
+              <select id="detailStatusSelect" name="status" <%= user.role === 'staff' && (!ticket.assignedTo || String(ticket.assignedTo._id || ticket.assignedTo) !== String(user.id)) ? 'disabled' : '' %>>
+                <% Object.values(STATUS).forEach(status => { %><option value="<%= status %>" <%= status === ticket.status ? 'selected' : '' %>><%= status %></option><% }) %>
+              </select>
+            </div>
+            <button class="btn btn-ghost" type="submit" <%= user.role === 'staff' && (!ticket.assignedTo || String(ticket.assignedTo._id || ticket.assignedTo) !== String(user.id)) ? 'disabled' : '' %>>Cập nhật trạng thái</button>
+          </form>
+        <% } %>
+      </aside>
+    </div>
+    <section class="card">
+      <h3>Lịch sử xử lý</h3>
+      <% const events = [
+        ...(ticket.statusHistory || []).map(entry => ({ at: entry.changedAt, by: entry.changedByName, text: (entry.from ? entry.from + ' → ' : 'Tạo yêu cầu: ') + entry.to })),
+        ...(ticket.assignmentHistory || []).map(entry => ({ at: entry.changedAt, by: entry.changedByName, text: entry.assignedToName ? 'Phân công cho ' + entry.assignedToName : 'Bỏ phân công' }))
+      ].sort((a, b) => new Date(b.at) - new Date(a.at)); %>
+      <% if (!events.length) { %><p>Yêu cầu được tạo ngày <%= new Date(ticket.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) %>. Chưa có lịch sử xử lý.</p><% } %>
+      <ol class="ticket-timeline">
+        <% events.forEach(event => { %><li><strong><%= event.text %></strong><span><%= event.by || '—' %> · <%= new Date(event.at).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) %></span></li><% }) %>
+      </ol>
+    </section>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/realtime.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/ticket-detail.js"></script>
+</body>
+</html>

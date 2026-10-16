@@ -1,0 +1,21 @@
+<div class="ticket-toolbar">
+  <%- include('ticket-filters') %>
+  <div class="ticket-toolbar-actions">
+    <p class="ticket-toolbar-summary">
+      <% if (typeof pagination !== 'undefined' && pagination) { %>
+        <%= pagination.total %> kết quả · Tối đa <%= pagination.pageSize %> yêu cầu mỗi trang
+      <% } else { %>
+        Thống kê trên toàn bộ <%= total %> yêu cầu phù hợp bộ lọc
+      <% } %>
+    </p>
+    <a class="btn btn-ghost" href="<%= exportUrl %>">Xuất Excel theo bộ lọc hiện tại</a>
+    <% if (typeof pagination === 'undefined' || !pagination) { %>
+      <a class="btn btn-ghost" href="<%= filterUrl() %>">Làm mới</a>
+    <% } %>
+  </div>
+  <% if (typeof pagination !== 'undefined' && pagination) { %>
+    <%- include('ticket-pagination') %>
+  <% } else { %>
+    <p id="ticketListChanged" class="ticket-change-notice" role="status" hidden>Số liệu có thay đổi. Bấm “Làm mới” để cập nhật theo bộ lọc hiện tại.</p>
+  <% } %>
+</div>

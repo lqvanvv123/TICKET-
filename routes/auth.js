@@ -52,7 +52,7 @@ router.post("/login", async (req, res) => {
     if (!match) return res.render("login", { error: "Sai tài khoản hoặc mật khẩu!" });
 
     req.session.user = { id: user._id, username: user.username, role: user.role };
-    res.redirect(user.role === "admin" ? "/admin" : "/user");
+    res.redirect(["admin", "staff"].includes(user.role) ? "/admin" : "/user");
   } catch (err) {
     console.error(err);
     res.render("login", { error: "Đã có lỗi xảy ra, vui lòng thử lại." });

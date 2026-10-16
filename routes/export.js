@@ -75,6 +75,7 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
 
     const tickets = await Ticket.find(filter)
       .populate("user", "username")
+      .populate("assignedTo", "username")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -98,6 +99,7 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
       { header: "Ngày tạo", key: "createdAt", width: 18, style: { numFmt: DATE_FMT } },
       { header: "Ngày hoàn thành", key: "resolvedAt", width: 18, style: { numFmt: DATE_FMT } },
       { header: "Thời gian xử lý (giờ)", key: "hours", width: 20, style: { numFmt: "0.0" } },
+      { header: "Người xử lý", key: "assignee", width: 24 },
     ];
     styleHeader(ws.getRow(1));
 
@@ -118,6 +120,7 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
         createdAt: toVN(t.createdAt),
         resolvedAt: toVN(t.resolvedAt),
         hours,
+        assignee: t.assignedTo ? t.assignedTo.username : "Chưa phân công",
       });
     });
 
@@ -125,7 +128,7 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
       if (n === 1) return;
       row.alignment = { vertical: "top", wrapText: true };
     });
-    ws.autoFilter = { from: "A1", to: "K1" };
+    ws.autoFilter = { from: "A1", to: "L1" };
 
     // ===== Sheet 2: tổng hợp (dùng công thức COUNTIF nên tự cập nhật khi sửa dữ liệu) =====
     const sum = wb.addWorksheet("Tổng hợp");
@@ -182,7 +185,7 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
 router.get("/admin/export/users.xlsx", ...guard, async (req, res) => {
   try {
     const q = (req.query.q || "").trim();
-    const role = ["user", "admin"].includes(req.query.role) ? req.query.role : "";
+    const role = ["user", "staff", "admin"].includes(req.query.role) ? req.query.role : "";
     const filter = {};
     if (q) filter.username = { $regex: escapeRegex(q), $options: "i" };
     if (role) filter.role = role;
@@ -218,7 +221,7 @@ router.get("/admin/export/users.xlsx", ...guard, async (req, res) => {
       const c = byId[String(u._id)] || { total: 0, open: 0 };
       ws.addRow({
         username: u.username,
-        role: u.role === "admin" ? "Admin IT" : "Người dùng",
+        role: u.role === "admin" ? "Admin IT" : u.role === "staff" ? "Nhân viên IT" : "Người dùng",
         total: c.total,
         open: c.open,
         createdAt: toVN(u.createdAt),

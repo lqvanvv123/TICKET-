@@ -5,25 +5,36 @@ const ChatMessage = require("../models/ChatMessage");
 const User = require("../models/User");
 const { requireLogin, requireRole } = require("../middleware/auth");
 
+// Dữ liệu 1 tin nhắn trả về cho giao diện: có tên người gửi và cờ "tin của chính mình"
+function chatMessageDto(m, viewerId) {
+  const sender = m.sender && m.sender._id ? m.sender : null;
+  return {
+    id: m._id,
+    text: m.text,
+    senderRole: m.senderRole,
+    senderName: sender ? sender.username : m.senderRole !== "user" ? "IT Support" : "Người dùng",
+    isMine: String(sender ? sender._id : m.sender) === String(viewerId),
+    createdAt: m.createdAt,
+  };
+}
+
 // ============ Phía USER: 1 cuộc trò chuyện duy nhất với team IT ============
 
 // Lấy toàn bộ tin nhắn của user hiện tại + đánh dấu đã đọc phần admin gửi
 router.get("/chat/api/messages", requireLogin, requireRole("user"), async (req, res) => {
   const userId = req.session.user.id;
-  const messages = await ChatMessage.find({ user: userId }).sort({ createdAt: 1 }).limit(200);
+  const messages = await ChatMessage.find({ user: userId })
+    .sort({ createdAt: 1 })
+    .limit(200)
+    .populate("sender", "username");
 
   await ChatMessage.updateMany(
-    { user: userId, senderRole: "admin", readByUser: false },
+    { user: userId, senderRole: { $in: ["admin", "staff"] }, readByUser: false },
     { $set: { readByUser: true } }
   );
 
   res.json({
-    messages: messages.map((m) => ({
-      id: m._id,
-      text: m.text,
-      senderRole: m.senderRole,
-      createdAt: m.createdAt,
-    })),
+    messages: messages.map((m) => chatMessageDto(m, req.session.user.id)),
   });
 });
 
@@ -48,7 +59,7 @@ router.post("/chat/api/messages", requireLogin, requireRole("user"), async (req,
 router.get("/chat/api/unread-count", requireLogin, requireRole("user"), async (req, res) => {
   const count = await ChatMessage.countDocuments({
     user: req.session.user.id,
-    senderRole: "admin",
+    senderRole: { $in: ["admin", "staff"] },
     readByUser: false,
   });
   res.json({ count });
@@ -57,7 +68,7 @@ router.get("/chat/api/unread-count", requireLogin, requireRole("user"), async (r
 // ============ Phía ADMIN: danh sách cuộc trò chuyện + chi tiết từng user ============
 
 // Danh sách user đã từng chat, kèm tin nhắn cuối + số tin chưa đọc
-router.get("/chat/api/conversations", requireLogin, requireRole("admin"), async (req, res) => {
+router.get("/chat/api/conversations", requireLogin, requireRole("admin", "staff"), async (req, res) => {
   const conversations = await ChatMessage.aggregate([
     { $sort: { createdAt: -1 } },
     {
@@ -96,17 +107,20 @@ router.get("/chat/api/conversations", requireLogin, requireRole("admin"), async 
 });
 
 // Tổng số tin nhắn chưa đọc (mọi user) — hiện badge trên nút chat của admin
-router.get("/chat/api/admin-unread-count", requireLogin, requireRole("admin"), async (req, res) => {
+router.get("/chat/api/admin-unread-count", requireLogin, requireRole("admin", "staff"), async (req, res) => {
   const count = await ChatMessage.countDocuments({ senderRole: "user", readByAdmin: false });
   res.json({ count });
 });
 
 // Lấy tin nhắn với 1 user cụ thể + đánh dấu đã đọc phần user gửi
-router.get("/chat/api/messages/:userId", requireLogin, requireRole("admin"), async (req, res) => {
+router.get("/chat/api/messages/:userId", requireLogin, requireRole("admin", "staff"), async (req, res) => {
   const { userId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ error: "userId không hợp lệ" });
 
-  const messages = await ChatMessage.find({ user: userId }).sort({ createdAt: 1 }).limit(200);
+  const messages = await ChatMessage.find({ user: userId })
+    .sort({ createdAt: 1 })
+    .limit(200)
+    .populate("sender", "username");
 
   await ChatMessage.updateMany(
     { user: userId, senderRole: "user", readByAdmin: false },
@@ -114,17 +128,12 @@ router.get("/chat/api/messages/:userId", requireLogin, requireRole("admin"), asy
   );
 
   res.json({
-    messages: messages.map((m) => ({
-      id: m._id,
-      text: m.text,
-      senderRole: m.senderRole,
-      createdAt: m.createdAt,
-    })),
+    messages: messages.map((m) => chatMessageDto(m, req.session.user.id)),
   });
 });
 
 // Admin gửi tin nhắn cho 1 user cụ thể
-router.post("/chat/api/messages/:userId", requireLogin, requireRole("admin"), async (req, res) => {
+router.post("/chat/api/messages/:userId", requireLogin, requireRole("admin", "staff"), async (req, res) => {
   const { userId } = req.params;
   const text = (req.body.text || "").trim();
   if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ error: "userId không hợp lệ" });
@@ -133,7 +142,7 @@ router.post("/chat/api/messages/:userId", requireLogin, requireRole("admin"), as
   const msg = await ChatMessage.create({
     user: userId,
     sender: req.session.user.id,
-    senderRole: "admin",
+    senderRole: req.session.user.role,
     text,
     readByAdmin: true,
     readByUser: false,

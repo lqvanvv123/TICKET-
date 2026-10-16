@@ -11,20 +11,26 @@
   <div class="container container-wide has-sidebar">
     <%- include('partials/admin-header', { pageTitle: 'Thống kê' }) %>
 
+    <%- include('partials/page-head', {
+      title: 'Tổng quan',
+      hint: 'Số liệu thống kê tự cập nhật khi có yêu cầu mới, đổi trạng thái hoặc bị xóa.',
+      count: total
+    }) %>
+
     <div class="stat-grid">
-      <div class="card stat-card">
+      <div class="card stat-card stat-total">
         <span class="stat-label">Tổng số yêu cầu</span>
         <span class="stat-value"><%= total %></span>
       </div>
-      <div class="card stat-card">
+      <div class="card stat-card status-in-progress">
         <span class="stat-label">Đang mở</span>
         <span class="stat-value"><%= (byStatus[STATUS.NEW] || 0) + (byStatus[STATUS.IN_PROGRESS] || 0) %></span>
       </div>
-      <div class="card stat-card">
+      <div class="card stat-card status-done">
         <span class="stat-label">Đã hoàn thành</span>
         <span class="stat-value"><%= byStatus[STATUS.DONE] || 0 %></span>
       </div>
-      <div class="card stat-card">
+      <div class="card stat-card stat-avg">
         <span class="stat-label">Thời gian xử lý TB</span>
         <span class="stat-value">
           <% if (avgResolutionHours === null) { %>
@@ -40,34 +46,45 @@
 
     <div class="chart-grid">
       <div class="card">
-        <h3>Theo trạng thái</h3>
-        <canvas id="chartStatus" height="220"></canvas>
+        <div class="card-head"><h3>Theo trạng thái</h3></div>
+        <div class="chart-box"><canvas id="chartStatus"></canvas></div>
       </div>
       <div class="card">
-        <h3>Theo mức độ ưu tiên</h3>
-        <canvas id="chartPriority" height="220"></canvas>
+        <div class="card-head"><h3>Theo mức độ ưu tiên</h3></div>
+        <div class="chart-box"><canvas id="chartPriority"></canvas></div>
       </div>
       <div class="card chart-wide">
-        <h3>Yêu cầu mới — 14 ngày gần nhất</h3>
-        <canvas id="chartTrend" height="180"></canvas>
+        <div class="card-head"><h3>Yêu cầu mới — 14 ngày gần nhất</h3></div>
+        <div class="chart-box"><canvas id="chartTrend"></canvas></div>
       </div>
       <div class="card chart-wide">
-        <h3>Theo loại yêu cầu</h3>
-        <canvas id="chartType" height="180"></canvas>
+        <div class="card-head"><h3>Theo loại yêu cầu</h3></div>
+        <div class="chart-box"><canvas id="chartType"></canvas></div>
       </div>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
   <%- include('partials/chat-widget-admin') %>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/realtime.js"></script>
   <script src="/js/notifications.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/chat-admin.js"></script>
   <script>
-    const inkColor = "#3a3f3b";
-    const gridColor = "#d9d4c5";
+    // Màu biểu đồ lấy từ cùng bộ biến màu với bảng danh sách để giao diện đồng điệu
+    const css = getComputedStyle(document.documentElement);
+    const tok = (name) => css.getPropertyValue(name).trim();
+    const inkColor = tok("--ink-soft");
+    const gridColor = tok("--rule");
     Chart.defaults.font.family = "IBM Plex Sans, sans-serif";
     Chart.defaults.color = inkColor;
+    Chart.defaults.maintainAspectRatio = false;
+
+    const STATUS_SLUG = <%- JSON.stringify(STATUS_SLUG) %>;
+    const PRIORITY_SLUG = <%- JSON.stringify(PRIORITY_SLUG) %>;
+    const statusColor = { new: tok("--stamp-new"), "in-progress": tok("--stamp-progress"), done: tok("--stamp-done") };
+    const prioColor = { low: tok("--prio-low"), medium: tok("--prio-medium"), high: tok("--prio-high"), urgent: tok("--prio-urgent") };
 
     const statusLabels = <%- JSON.stringify(Object.keys(byStatus)) %>;
     const statusData = <%- JSON.stringify(Object.values(byStatus)) %>;
@@ -75,7 +92,12 @@
       type: "doughnut",
       data: {
         labels: statusLabels,
-        datasets: [{ data: statusData, backgroundColor: ["#b5432b", "#92650f", "#2f5233"] }],
+        datasets: [{
+          data: statusData,
+          backgroundColor: statusLabels.map((l) => statusColor[STATUS_SLUG[l]]),
+          borderColor: tok("--surface"),
+          borderWidth: 2,
+        }],
       },
       options: { plugins: { legend: { position: "bottom" } } },
     });
@@ -86,11 +108,11 @@
       type: "bar",
       data: {
         labels: prioLabels,
-        datasets: [{ data: prioData, backgroundColor: ["#7a776c", "#92650f", "#b5432b", "#7a1f1f"] }],
+        datasets: [{ data: prioData, backgroundColor: prioLabels.map((l) => prioColor[PRIORITY_SLUG[l]]) }],
       },
       options: {
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } }, x: { grid: { display: false } } },
       },
     });
 
@@ -102,8 +124,8 @@
         labels: trendLabels,
         datasets: [{
           data: trendData,
-          borderColor: "#92650f",
-          backgroundColor: "rgba(146,101,15,0.12)",
+          borderColor: tok("--stamp-progress"),
+          backgroundColor: tok("--stamp-progress-bg"),
           fill: true,
           tension: 0.25,
           pointRadius: 3,
@@ -111,7 +133,7 @@
       },
       options: {
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } }, x: { grid: { display: false } } },
       },
     });
 
@@ -121,14 +143,25 @@
       type: "bar",
       data: {
         labels: typeLabels,
-        datasets: [{ data: typeData, backgroundColor: "#3a3f3b" }],
+        datasets: [{ data: typeData, backgroundColor: tok("--type-ink") }],
       },
       options: {
         indexAxis: "y",
         plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, grid: { color: gridColor } }, y: { grid: { display: false } } },
+        scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } }, y: { grid: { display: false } } },
       },
     });
+  </script>
+  <script>
+    // Số liệu thống kê đổi theo thời gian thực: có thay đổi yêu cầu thì tải lại sau 0,6 giây (gộp nhiều sự kiện)
+    (function () {
+      let timer = null;
+      function scheduleReload() {
+        clearTimeout(timer);
+        timer = setTimeout(() => location.reload(), 600);
+      }
+      ["ticket:created", "ticket:updated", "ticket:deleted"].forEach((ev) => window.socket.on(ev, scheduleReload));
+    })();
   </script>
 </body>
 </html>

@@ -6,7 +6,7 @@ const chatMessageSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // chủ cuộc trò chuyện
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // người gửi tin nhắn này
-    senderRole: { type: String, enum: ["user", "admin"], required: true },
+    senderRole: { type: String, enum: ["user", "staff", "admin"], required: true },
     text: { type: String, required: true, trim: true, maxlength: 2000 },
     readByUser: { type: Boolean, default: false },
     readByAdmin: { type: Boolean, default: false },

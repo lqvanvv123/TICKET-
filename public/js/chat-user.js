@@ -26,13 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const nearBottom = messagesBox.scrollTop + messagesBox.clientHeight >= messagesBox.scrollHeight - 20;
-    messagesBox.innerHTML = messages
-      .map((m) => {
-        const side = m.senderRole === "user" ? "me" : "them";
-        const time = new Date(m.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-        return `<div class="chat-bubble ${side}"><span class="chat-bubble-text">${escapeHtml(m.text)}</span><span class="chat-bubble-time">${time}</span></div>`;
-      })
-      .join("");
+    window.renderChatMessages(messagesBox, messages, "user");
     if (nearBottom || messages.length !== lastCount) {
       messagesBox.scrollTop = messagesBox.scrollHeight;
     }

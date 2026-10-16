@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listHead.style.display = "none";
     listBox.style.display = "none";
     detailHead.style.display = "flex";
-    detailMessages.style.display = "block";
+    detailMessages.style.display = "flex"; // phải là flex để tin của mình canh phải, tin người kia canh trái
     detailForm.style.display = "flex";
     detailUsername.textContent = username;
     if (pollTimer) clearInterval(pollTimer);
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     listBox.innerHTML = conversations
       .map((c) => {
-        const preview = c.lastSenderRole === "admin" ? "Bạn: " + c.lastText : c.lastText;
+        const preview = c.lastSenderRole !== "user" ? "IT: " + c.lastText : c.lastText;
         return `<button type="button" class="chat-list-item" data-user-id="${c.userId}" data-username="${escapeHtml(c.username)}">
           <span class="chat-list-top"><span class="chat-list-name">${escapeHtml(c.username)}</span><span class="chat-list-time">${timeAgo(c.lastAt)}</span></span>
           <span class="chat-list-preview">${escapeHtml(preview)}</span>
@@ -115,13 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const nearBottom = detailMessages.scrollTop + detailMessages.clientHeight >= detailMessages.scrollHeight - 20;
-    detailMessages.innerHTML = messages
-      .map((m) => {
-        const side = m.senderRole === "admin" ? "me" : "them";
-        const time = new Date(m.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-        return `<div class="chat-bubble ${side}"><span class="chat-bubble-text">${escapeHtml(m.text)}</span><span class="chat-bubble-time">${time}</span></div>`;
-      })
-      .join("");
+    window.renderChatMessages(detailMessages, messages, "admin");
     if (nearBottom || messages.length !== lastCount) {
       detailMessages.scrollTop = detailMessages.scrollHeight;
     }

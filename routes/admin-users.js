@@ -10,6 +10,9 @@ const Ticket = require("../models/Ticket");
 const Notification = require("../models/Notification");
 const ChatMessage = require("../models/ChatMessage");
 const { requireLogin, requireRole } = require("../middleware/auth");
+const realtime = require("../utils/realtime");
+const { releaseAssignments } = require("../services/tickets");
+const wrap = require("../middleware/async");
 
 const guard = [requireLogin, requireRole("admin")];
 const UPLOAD_DIR = path.join(__dirname, "..", "public", "uploads", "tickets");
@@ -28,18 +31,19 @@ const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // ---- Danh sách người dùng (có tìm kiếm + lọc vai trò) ----
 router.get("/admin/users", ...guard, async (req, res) => {
   const q = (req.query.q || "").trim();
-  const roleFilter = ["user", "admin"].includes(req.query.role) ? req.query.role : "";
+  const roleFilter = ["user", "staff", "admin"].includes(req.query.role) ? req.query.role : "";
 
   const filter = {};
   if (q) filter.username = { $regex: escapeRegex(q), $options: "i" };
   if (roleFilter) filter.role = roleFilter;
 
-  const [users, ticketCounts, notifications, totalUsers, totalAdmins] = await Promise.all([
+  const [users, ticketCounts, notifications, totalUsers, totalAdmins, totalStaff] = await Promise.all([
     User.find(filter).sort({ createdAt: -1 }),
     Ticket.aggregate([{ $group: { _id: "$user", total: { $sum: 1 }, open: { $sum: { $cond: [{ $ne: ["$status", Ticket.STATUS.DONE] }, 1, 0] } } } }]),
-    Notification.find({ recipient: req.session.user.id, isRead: false }).sort({ createdAt: -1 }),
+    Notification.find({ recipient: req.session.user.id }).sort({ createdAt: -1 }).limit(50),
     User.countDocuments({ role: "user" }),
     User.countDocuments({ role: "admin" }),
+    User.countDocuments({ role: "staff" }),
   ]);
 
   const countsById = {};
@@ -55,6 +59,7 @@ router.get("/admin/users", ...guard, async (req, res) => {
     roleFilter,
     totalUsers,
     totalAdmins,
+    totalStaff,
     flashMsg: req.query.msg || null,
     flashError: req.query.error || null,
   });
@@ -64,7 +69,8 @@ router.get("/admin/users", ...guard, async (req, res) => {
 router.post("/admin/users", ...guard, async (req, res) => {
   const username = (req.body.username || "").trim();
   const password = req.body.password || "";
-  const role = req.body.role === "admin" ? "admin" : "user";
+  const role = req.body.role || "user";
+  if (!["user", "staff", "admin"].includes(role)) return back(res, { error: "Vai trò không hợp lệ." });
 
   if (!username || !password) return back(res, { error: "Vui lòng nhập tên đăng nhập và mật khẩu." });
   if (username.length < 3 || username.length > 30) return back(res, { error: "Tên đăng nhập phải từ 3 đến 30 ký tự." });
@@ -72,20 +78,23 @@ router.post("/admin/users", ...guard, async (req, res) => {
   if (await User.findOne({ username })) return back(res, { error: `Tên đăng nhập "${username}" đã tồn tại.` });
 
   await User.create({ username, password: await bcrypt.hash(password, 10), role });
-  back(res, { msg: `Đã tạo tài khoản "${username}" (${role === "admin" ? "Admin IT" : "Người dùng"}).` });
+  back(res, { msg: `Đã tạo tài khoản "${username}" (${role === "admin" ? "Admin IT" : role === "staff" ? "Nhân viên IT" : "Người dùng"}).` });
 });
 
 // ---- Đổi vai trò ----
-router.post("/admin/users/:id/role", ...guard, async (req, res) => {
+router.post("/admin/users/:id/role", ...guard, wrap(async (req, res) => {
   const { id } = req.params;
-  const role = req.body.role === "admin" ? "admin" : "user";
+  const role = req.body.role || "user";
+  if (!["user", "staff", "admin"].includes(role)) return back(res, { error: "Vai trò không hợp lệ." });
   if (!validId(id)) return back(res, { error: "Tài khoản không hợp lệ." });
   if (isSelf(req, id)) return back(res, { error: "Bạn không thể đổi vai trò của chính mình." });
 
   const target = await User.findByIdAndUpdate(id, { role }, { new: true });
   if (!target) return back(res, { error: "Không tìm thấy tài khoản." });
-  back(res, { msg: `Đã đổi "${target.username}" thành ${role === "admin" ? "Admin IT" : "Người dùng"}.` });
-});
+  if (role === "user") await releaseAssignments(id, req.session.user);
+  realtime.disconnectUser(id);
+  back(res, { msg: `Đã đổi "${target.username}" thành ${role === "admin" ? "Admin IT" : role === "staff" ? "Nhân viên IT" : "Người dùng"}.` });
+}));
 
 // ---- Đặt lại mật khẩu ----
 router.post("/admin/users/:id/password", ...guard, async (req, res) => {
@@ -100,13 +109,14 @@ router.post("/admin/users/:id/password", ...guard, async (req, res) => {
 });
 
 // ---- Xoá tài khoản (kèm toàn bộ dữ liệu của tài khoản đó) ----
-router.post("/admin/users/:id/delete", ...guard, async (req, res) => {
+router.post("/admin/users/:id/delete", ...guard, wrap(async (req, res) => {
   const { id } = req.params;
   if (!validId(id)) return back(res, { error: "Tài khoản không hợp lệ." });
   if (isSelf(req, id)) return back(res, { error: "Bạn không thể xoá chính tài khoản đang đăng nhập." });
 
   const target = await User.findById(id);
   if (!target) return back(res, { error: "Không tìm thấy tài khoản." });
+  await releaseAssignments(id, req.session.user);
 
   // Xoá file đính kèm trên đĩa trước khi xoá ticket (basename để tránh path traversal)
   const tickets = await Ticket.find({ user: id }, "attachments");
@@ -123,7 +133,12 @@ router.post("/admin/users/:id/delete", ...guard, async (req, res) => {
     User.deleteOne({ _id: id }),
   ]);
 
+  realtime.disconnectUser(id);
+
+  // Các admin khác đang mở danh sách sẽ thấy các yêu cầu của tài khoản này biến mất ngay
+  tickets.forEach((t) => realtime.toAdmins("ticket:deleted", { id: t._id }));
+
   back(res, { msg: `Đã xoá tài khoản "${target.username}" và dữ liệu liên quan.` });
-});
+}));
 
 module.exports = router;

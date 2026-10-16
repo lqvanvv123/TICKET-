@@ -17,7 +17,7 @@
     <div class="stat-grid users-stats">
       <div class="card stat-card">
         <span class="stat-label">Tổng tài khoản</span>
-        <span class="stat-value"><%= totalUsers + totalAdmins %></span>
+        <span class="stat-value"><%= totalUsers + totalAdmins + totalStaff %></span>
       </div>
       <div class="card stat-card">
         <span class="stat-label">Người dùng</span>
@@ -27,6 +27,7 @@
         <span class="stat-label">Admin IT</span>
         <span class="stat-value"><%= totalAdmins %></span>
       </div>
+      <div class="card stat-card"><span class="stat-label">Nhân viên IT</span><span class="stat-value"><%= totalStaff %></span></div>
     </div>
 
     <div class="card">
@@ -47,6 +48,7 @@
                 <label for="nu-role">Vai trò</label>
                 <select id="nu-role" name="role">
                   <option value="user" selected>Người dùng</option>
+                  <option value="staff">Nhân viên IT</option>
                   <option value="admin">Admin IT</option>
                 </select>
               </div>
@@ -65,6 +67,7 @@
         <select name="role" aria-label="Lọc theo vai trò">
           <option value="">Tất cả vai trò</option>
           <option value="user" <%= roleFilter === 'user' ? 'selected' : '' %>>Người dùng</option>
+          <option value="staff" <%= roleFilter === 'staff' ? 'selected' : '' %>>Nhân viên IT</option>
           <option value="admin" <%= roleFilter === 'admin' ? 'selected' : '' %>>Admin IT</option>
         </select>
         <button type="submit" class="btn btn-ghost">Lọc</button>
@@ -98,6 +101,7 @@
                     <form action="/admin/users/<%= u._id %>/role" method="POST">
                       <select name="role" onchange="this.form.submit()" aria-label="Đổi vai trò của <%= u.username %>">
                         <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>Người dùng</option>
+                        <option value="staff" <%= u.role === 'staff' ? 'selected' : '' %>>Nhân viên IT</option>
                         <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin IT</option>
                       </select>
                     </form>
@@ -134,6 +138,8 @@
   </div>
 
   <%- include('partials/chat-widget-admin') %>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/realtime.js"></script>
   <script src="/js/notifications.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/chat-admin.js"></script>
