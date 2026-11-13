@@ -1,0 +1,14 @@
+/* Hạn xử lý dùng cả màu và chữ để đọc được khi không phân biệt màu sắc. */
+.ticket-deadline { display: inline-flex; flex-direction: column; gap: 3px; padding: 6px 9px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink-soft); font-size: .78rem; line-height: 1.5; }
+.ticket-deadline strong { font-weight: 600; }
+.ticket-deadline time { font-size: .74rem; white-space: nowrap; }
+.ticket-deadline time[hidden] { display: none; }
+.ticket-deadline.deadline-overdue, .ticket-deadline.deadline-late { color: #922d24; background: #fff0ec; border-color: #dfaaa2; }
+.ticket-deadline.deadline-soon { color: #754c0c; background: #fff6df; border-color: #d5bd82; }
+.ticket-deadline.deadline-scheduled, .ticket-deadline.deadline-on-time { color: #28543b; background: #edf5ed; border-color: #a9c5ae; }
+.deadline-hint { color: var(--ink-soft); font-size: .78rem; line-height: 1.6; margin: 6px 0; }
+[data-deadline-form] { border-top: 1px solid var(--rule); padding-top: 16px; margin: 16px 0; }
+[data-deadline-form] input { box-sizing: border-box; width: 100%; min-width: 0; }
+.dashboard-kpis .deadline-overdue { border-top: 3px solid #922d24; }
+.dashboard-kpis .deadline-soon { border-top: 3px solid #99701a; }
+.dashboard-recent .ticket-deadline { margin-top: 6px; }

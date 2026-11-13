@@ -1,0 +1,92 @@
+/* Chỉ áp dụng cho danh sách IT; giao diện chi tiết và các bảng khác giữ kiểu riêng. */
+.ticket-list-workspace > .topbar { padding-left: 48px; }
+.ticket-list-workspace .topbar-actions { flex-wrap: wrap; }
+.ticket-list-workspace .user-tag { overflow-wrap: anywhere; }
+.ticket-filter-card .ticket-filters { margin-bottom: 0; padding-bottom: 0; border: 0; }
+.ticket-filter-card input[type="search"] { box-sizing: border-box; border: 1px solid var(--rule-strong); border-radius: var(--radius); padding: 12px; background: var(--surface); color: var(--ink); font: 400 1rem var(--font-body); min-height: 46px; }
+.ticket-filter-toggle { display: none; }
+.ticket-list-workspace .filter-actions { grid-column: span 2; }
+.ticket-filter-more { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding-top: 12px; }
+.ticket-filter-more > summary { cursor: pointer; font-size: .87rem; width: fit-content; padding: 5px 0; }
+.ticket-filter-extra { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-top: 14px; }
+.ticket-list-sync { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0; color: var(--ink-soft); font-size: .85rem; }
+.ticket-list-sync .btn { width: auto; }
+.ticket-results-toolbar { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.ticket-results-toolbar h3 { margin-bottom: 5px; }
+.ticket-results-toolbar .ticket-section-hint { max-width: 650px; line-height: 1.6; }
+.ticket-active-filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 18px; }
+.ticket-active-filters a { display: inline-flex; gap: 10px; align-items: center; border: 1px solid var(--rule-strong); border-radius: 6px; padding: 5px 9px; color: var(--ink-soft); text-decoration: none; font-size: .8rem; max-width: 100%; overflow-wrap: anywhere; }
+.ticket-active-filters a:hover { background: var(--surface); }
+.ticket-active-filters span { font-size: 1.1rem; }
+.ticket-table { table-layout: fixed; }
+.ticket-table th:nth-child(1) { width: 30%; }
+.ticket-table th:nth-child(2) { width: 9%; }
+.ticket-table th:nth-child(3) { width: 13%; }
+.ticket-table th:nth-child(4) { width: 14%; }
+.ticket-table th:nth-child(5) { width: 17%; }
+.ticket-table th:nth-child(6) { width: 17%; }
+.ticket-table th, .ticket-table td { padding-left: 10px; padding-right: 10px; overflow-wrap: anywhere; }
+.ticket-table .ticket-title { font-size: 1rem; line-height: 1.5; margin-bottom: 6px; }
+.ticket-table .ticket-title a { color: var(--ink); text-underline-offset: 3px; }
+.ticket-row-meta { display: flex; flex-wrap: wrap; gap: 5px 12px; font-size: .8rem; color: var(--ink-soft); }
+.ticket-row-date { display: block; margin-top: 5px; color: var(--ink-soft); font-size: .76rem; }
+.ticket-table .stamp, .ticket-table .prio-badge { white-space: normal; line-height: 1.5; }
+.ticket-table .ticket-deadline { padding: 5px 7px; max-width: 100%; }
+.ticket-table .ticket-deadline time { white-space: normal; }
+.ticket-row-link { display: block; width: fit-content; margin-top: 7px; color: var(--ink-soft); font-size: .8rem; text-underline-offset: 3px; }
+.ticket-actions-cell .js-status-select { width: 100%; min-width: 0; font-size: .82rem; padding: 8px 5px; }
+.ticket-actions-cell > .btn { width: 100%; font-size: .8rem; margin-bottom: 7px; }
+.ticket-permission-hint { display: block; font-size: .75rem; line-height: 1.5; color: var(--ink-soft); margin-top: 5px; }
+.ticket-permission-hint[hidden] { display: none; }
+.ticket-secondary-actions { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.ticket-row-menu, .ticket-export-menu { position: relative; }
+.ticket-row-menu > summary, .ticket-export-menu > summary { cursor: pointer; list-style: none; }
+.ticket-row-menu > summary::-webkit-details-marker, .ticket-export-menu > summary::-webkit-details-marker { display: none; }
+.ticket-row-menu > summary { min-width: 32px; min-height: 32px; display: grid; place-items: center; border: 1px solid var(--rule); border-radius: 5px; margin-top: 7px; }
+.ticket-export-menu > summary { width: auto; white-space: nowrap; }
+.ticket-menu-panel { position: absolute; z-index: 30; right: 0; top: 100%; width: 230px; max-width: calc(100vw - 50px); background: var(--surface); border: 1px solid var(--rule-strong); border-radius: 6px; box-shadow: var(--shadow-card); padding: 7px; }
+.ticket-menu-panel a, .ticket-menu-panel button { display: flex; align-items: center; width: 100%; gap: 6px; text-align: left; border: 0; padding: 10px; margin: 0; text-decoration: none; font: 400 .85rem var(--font-body); color: var(--ink); background: transparent; }
+.ticket-menu-panel a:hover, .ticket-menu-panel button:hover { background: var(--stamp-progress-bg); }
+.ticket-menu-panel .btn-delete-ticket { color: #922d24; }
+.ticket-menu-panel small { display: block; font-size: .76rem; line-height: 1.5; color: var(--ink-soft); padding: 8px 10px; }
+.ticket-page-summary { flex: 1 1 250px; font-size: .84rem; color: var(--ink-soft); }
+.ticket-page-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ticket-page-links .btn { min-width: 36px; min-height: 36px; padding: 6px 10px; text-decoration: none; }
+.ticket-current-page { border: 1px solid var(--ink); background: var(--ink); color: var(--surface); }
+.ticket-list-workspace :is(a,button,summary,select,input):focus-visible { outline: 3px solid var(--stamp-progress); outline-offset: 3px; }
+.ticket-list-workspace .empty-row p { margin: 8px 0 15px; }
+.ticket-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ticket-list-workspace [aria-busy="true"] { opacity: .7; }
+@media (max-width: 1100px) and (min-width: 761px) {
+  .ticket-table-wrap { overflow-x: auto; padding-bottom: 110px; margin-bottom: -100px; }
+  .ticket-table { min-width: 900px; }
+}
+@media (max-width: 760px) {
+  .ticket-filter-toggle { display: list-item; cursor: pointer; font-weight: 500; min-height: 44px; padding: 4px 0; }
+  .ticket-filter-toggle span { display: block; color: var(--ink-soft); font-size: .8rem; font-weight: 400; line-height: 1.6; margin-top: 4px; }
+  .ticket-filter-panel[open] > .ticket-filters { margin-top: 16px; }
+  /* Một dòng dữ liệu trở thành một thẻ, dùng lại DOM nên không trùng nút/ID hoặc mất realtime. */
+  .ticket-table, .ticket-table tbody { display: block; }
+  .ticket-table thead { display: none; }
+  .ticket-table tr[data-ticket-id] { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px 12px; border: 1px solid var(--rule-strong); border-radius: 8px; padding: 16px; margin-bottom: 14px; background: var(--surface); }
+  .ticket-table td { display: block; border: 0; padding: 0; min-width: 0; }
+  .ticket-table td[data-label]::before { content: attr(data-label); display: block; font-size: .75rem; color: var(--ink-soft); margin-bottom: 7px; }
+  .ticket-main-cell, .ticket-actions-cell { grid-column: 1 / -1; }
+  .ticket-actions-cell { border-top: 1px solid var(--rule) !important; padding-top: 12px !important; }
+  .ticket-actions-cell .js-status-select { min-height: 42px; }
+  .ticket-row-menu > summary { min-width: 44px; min-height: 44px; }
+  .ticket-secondary-actions .ticket-row-link { padding: 8px 0; }
+  .ticket-table .empty-row, .ticket-table .empty-row td { display: block; }
+  .ticket-results-card { padding: 16px; }
+  .ticket-filter-extra { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .ticket-results-toolbar { flex-wrap: wrap; }
+  .ticket-export-menu .ticket-menu-panel { left: 0; right: auto; }
+}
+@media (max-width: 520px) {
+  .ticket-list-workspace > .topbar { padding-left: 0; }
+  .ticket-list-workspace .user-tag { flex-basis: 100%; }
+  .ticket-list-workspace .filter-actions { grid-column: auto; }
+  .ticket-filter-extra { grid-template-columns: 1fr; }
+  .ticket-page-links { gap: 4px; }
+  .ticket-page-links .btn { min-width: 32px; padding: 6px 8px; }
+}

@@ -96,6 +96,7 @@ test("status selects are locked for other staff and enabled for owner and admin"
   });
   const locals = {
     t,
+    deadlines: require('../public/js/deadlines'),
     STATUS: Ticket.STATUS,
     STATUS_SLUG: Ticket.STATUS_SLUG,
     PRIORITY_SLUG: Ticket.PRIORITY_SLUG,

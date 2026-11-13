@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderMessages(messages) {
+    // Chỉ cuộn xuống khi đang gần cuối hoặc số tin thay đổi; lastCount nhớ số tin ở lần trước.
     if (!messages.length) {
       messagesBox.innerHTML = '<p class="chat-empty">Chưa có tin nhắn — gửi lời chào để bắt đầu trò chuyện với IT nhé!</p>';
       return;
@@ -33,14 +34,17 @@ document.addEventListener("DOMContentLoaded", () => {
     lastCount = messages.length;
   }
 
-  async function loadMessages() {
+  async function loadMessages(initial = false) {
+    // Chat dùng polling: trình duyệt hỏi API định kỳ, không nhận tin chat bằng Socket.IO.
     try {
-      const res = await fetch("/chat/api/messages");
-      if (!res.ok) return;
-      const data = await res.json();
+      if (initial) messagesBox.innerHTML = '<p class="chat-empty" role="status">Đang tải tin nhắn…</p>';
+      const data = await window.ITUI.request('/chat/api/messages');
       renderMessages(data.messages || []);
     } catch (e) {
-      // bỏ qua lỗi mạng tạm thời
+      if (initial) {
+        messagesBox.innerHTML = '<p class="chat-empty" role="status">Chưa tải được tin nhắn. Đang thử kết nối lại…</p>';
+        window.ITUI.toast(e.message, 'error');
+      }
     }
   }
 
@@ -60,8 +64,9 @@ document.addEventListener("DOMContentLoaded", () => {
     isOpen = true;
     panel.classList.add("open");
     panel.setAttribute("aria-hidden", "false");
-    loadMessages();
+    loadMessages(true);
     refreshBadge();
+    // Khi mở khung chat: tải lại nội dung mỗi 4 giây.
     pollTimer = setInterval(loadMessages, 4000);
     setTimeout(() => input && input.focus(), 150);
   }
@@ -70,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
     isOpen = false;
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");
+    // Đóng khung thì dừng tải nội dung; bộ đếm chưa đọc vẫn được kiểm tra riêng bên dưới.
     if (pollTimer) clearInterval(pollTimer);
   }
 
@@ -80,20 +86,24 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
-    input.value = "";
+    const button = form.querySelector('button[type="submit"]');
+    if (button.disabled) return;
+    const restore = window.ITUI.busy(button, 'Đang gửi…');
     try {
-      const res = await fetch("/chat/api/messages", {
+      await window.ITUI.request("/chat/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "text=" + encodeURIComponent(text),
       });
-      if (res.ok) loadMessages();
+      if (input.value.trim() === text) input.value = '';
+      loadMessages();
     } catch (e) {
-      // bỏ qua lỗi mạng tạm thời, người dùng có thể gửi lại
-    }
+      window.ITUI.toast(e.message, 'error');
+    } finally { restore(); }
   });
 
   refreshBadge();
+  // Khi đóng chat, chỉ hỏi số tin chưa đọc mỗi 15 giây để cập nhật huy hiệu trên nút mở.
   setInterval(() => {
     if (!isOpen) refreshBadge();
   }, 15000);

@@ -4,6 +4,9 @@ const router = express.Router();
 
 const Ticket = require("../models/Ticket");
 const User = require("../models/User");
+const { createPdfReport } = require('../utils/pdf-report');
+const deadlines = require('../public/js/deadlines');
+const { parseTicketFilters } = require('../utils/ticket-filters');
 const { requireLogin, requireRole } = require("../middleware/auth");
 
 const guard = [requireLogin, requireRole("admin")];
@@ -31,52 +34,41 @@ function styleHeader(row) {
 }
 
 function sendWorkbook(res, wb, filename) {
+  // MIME cho biết đây là Excel; Content-Disposition yêu cầu trình duyệt tải về với tên chỉ định.
+  // write gửi nội dung workbook vào HTTP response; end kết thúc phản hồi sau khi ghi xong.
   res.setHeader("Content-Type", XLSX_MIME);
   res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
   return wb.xlsx.write(res).then(() => res.end());
 }
+async function sendReport(req, res, wb, filename, title) {
+  if (!(req.path || '').endsWith('.pdf')) return sendWorkbook(res, wb, filename + '.xlsx');
+  // Tạo xong PDF trước khi gửi header để nếu lỗi vẫn trả được thông báo rõ ràng.
+  const pdf = await createPdfReport(wb, { title, username: req.session.user.username });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+  res.end(pdf);
+}
 
 // ---- Xuất danh sách yêu cầu (có bộ lọc tuỳ chọn) ----
-router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
+async function exportTickets(req, res) {
   try {
-    const { status, priority, type, from, to } = req.query;
-    const filter = {};
+    const reportTime = new Date();
+    const {filters,filter} = parseTicketFilters(req.query,req.session.user,reportTime);
     const applied = [];
-
-    if (Object.values(Ticket.STATUS).includes(status)) {
-      filter.status = status;
-      applied.push(["Trạng thái", status]);
+    const labels = {q:'Tìm kiếm',status:'Trạng thái',priority:'Ưu tiên',type:'Loại yêu cầu',from:'Từ ngày',to:'Đến ngày',assignee:'Người phụ trách',deadline:'Hạn xử lý'};
+    for(const [key,value] of Object.entries(filters)) {
+      if(!value)continue;
+      const display = key === 'deadline' ? deadlines.LABELS[value]
+        : key === 'status' && value === 'open' ? 'Còn mở'
+        : key === 'assignee' && value === 'mine' ? req.session.user.username
+        : key === 'assignee' && value === 'unassigned' ? 'Chưa phân công' : value;
+      applied.push([labels[key],display]);
     }
-    if (Object.values(Ticket.PRIORITY).includes(priority)) {
-      filter.priority = priority;
-      applied.push(["Mức độ ưu tiên", priority]);
-    }
-    if (Object.values(Ticket.REQUEST_TYPE).includes(type)) {
-      filter.requestType = type;
-      applied.push(["Loại yêu cầu", type]);
-    }
-
-    const dateRange = {};
-    if (/^\d{4}-\d{2}-\d{2}$/.test(from || "")) {
-      const d = new Date(from + "T00:00:00+07:00");
-      if (!isNaN(d)) {
-        dateRange.$gte = d;
-        applied.push(["Từ ngày", from]);
-      }
-    }
-    if (/^\d{4}-\d{2}-\d{2}$/.test(to || "")) {
-      const d = new Date(to + "T23:59:59.999+07:00");
-      if (!isNaN(d)) {
-        dateRange.$lte = d;
-        applied.push(["Đến ngày", to]);
-      }
-    }
-    if (Object.keys(dateRange).length) filter.createdAt = dateRange;
 
     const tickets = await Ticket.find(filter)
       .populate("user", "username")
       .populate("assignedTo", "username")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .lean();
 
     const wb = new ExcelJS.Workbook();
@@ -100,6 +92,8 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
       { header: "Ngày hoàn thành", key: "resolvedAt", width: 18, style: { numFmt: DATE_FMT } },
       { header: "Thời gian xử lý (giờ)", key: "hours", width: 20, style: { numFmt: "0.0" } },
       { header: "Người xử lý", key: "assignee", width: 24 },
+      { header: "Hạn xử lý (giờ Việt Nam)", key: "dueAt", width: 24, style: { numFmt: DATE_FMT } },
+      { header: "Tình trạng hạn", key: "deadlineState", width: 26 },
     ];
     styleHeader(ws.getRow(1));
 
@@ -121,6 +115,8 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
         resolvedAt: toVN(t.resolvedAt),
         hours,
         assignee: t.assignedTo ? t.assignedTo.username : "Chưa phân công",
+        dueAt: toVN(t.dueAt),
+        deadlineState: deadlines.info(t, reportTime).label,
       });
     });
 
@@ -128,7 +124,7 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
       if (n === 1) return;
       row.alignment = { vertical: "top", wrapText: true };
     });
-    ws.autoFilter = { from: "A1", to: "L1" };
+    ws.autoFilter = { from: "A1", to: "N1" };
 
     // ===== Sheet 2: tổng hợp (dùng công thức COUNTIF nên tự cập nhật khi sửa dữ liệu) =====
     const sum = wb.addWorksheet("Tổng hợp");
@@ -141,6 +137,8 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
 
     const ref = `'${DATA_SHEET}'`; // tên sheet dữ liệu dùng trong công thức
     const section = (title, col, values, countOf) => {
+      // Tạo một nhóm thống kê: mỗi giá trị có công thức COUNTIF tham chiếu cột ở sheet dữ liệu.
+      // result là kết quả tính sẵn để phần mềm đọc Excel hiển thị trước khi tính lại công thức.
       const head = sum.addRow([title, "Số lượng"]);
       styleHeader(head);
       values.forEach((v) => {
@@ -162,6 +160,7 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
     section("Theo mức độ ưu tiên", "F", Object.values(Ticket.PRIORITY), (v) => tickets.filter((t) => t.priority === v).length);
     section("Theo loại yêu cầu", "E", Object.values(Ticket.REQUEST_TYPE), (v) => tickets.filter((t) => t.requestType === v).length);
 
+    // Chỉ tính thời gian các yêu cầu đã hoàn thành; 36e5 = 3.600.000 ms = một giờ.
     const done = tickets.filter((t) => t.status === Ticket.STATUS.DONE && t.resolvedAt);
     const avg = done.length
       ? done.reduce((s, t) => s + (new Date(t.resolvedAt) - new Date(t.createdAt)) / 36e5, 0) / done.length
@@ -174,15 +173,17 @@ router.get("/admin/export/tickets.xlsx", ...guard, async (req, res) => {
     avgRow.getCell(2).numFmt = "0.0";
     avgRow.font = { bold: true };
 
-    await sendWorkbook(res, wb, `yeu-cau-ho-tro-${todayVN()}.xlsx`);
+    await sendReport(req, res, wb, `yeu-cau-ho-tro-${todayVN()}`, 'Báo cáo yêu cầu hỗ trợ IT');
   } catch (err) {
     console.error("Export tickets failed:", err);
-    if (!res.headersSent) res.status(500).send("Không thể xuất file Excel, vui lòng thử lại.");
+    if (!res.headersSent) res.status(err.status === 400 ? 400 : 500).send(err.status === 400 ? err.message : "Không thể xuất báo cáo, vui lòng thử lại.");
   }
-});
+}
+router.get('/admin/export/tickets.xlsx', ...guard, exportTickets);
+router.get('/admin/export/tickets.pdf', ...guard, exportTickets);
 
 // ---- Xuất danh sách người dùng (theo bộ lọc đang áp dụng ở trang quản lý) ----
-router.get("/admin/export/users.xlsx", ...guard, async (req, res) => {
+async function exportUsers(req, res) {
   try {
     const q = (req.query.q || "").trim();
     const role = ["user", "staff", "admin"].includes(req.query.role) ? req.query.role : "";
@@ -203,6 +204,7 @@ router.get("/admin/export/users.xlsx", ...guard, async (req, res) => {
         },
       ]),
     ]);
+    // Ghép thống kê ticket vào từng tài khoản qua ID, không dựa theo vị trí trong hai mảng.
     const byId = {};
     counts.forEach((c) => (byId[String(c._id)] = c));
 
@@ -229,11 +231,18 @@ router.get("/admin/export/users.xlsx", ...guard, async (req, res) => {
     });
     ws.autoFilter = { from: "A1", to: "E1" };
 
-    await sendWorkbook(res, wb, `nguoi-dung-${todayVN()}.xlsx`);
+    // Lưu bộ lọc vào sheet thông tin riêng để phần đầu PDF có thể hiển thị.
+    if ((req.path || '').endsWith('.pdf')) {
+      const info = wb.addWorksheet('Thông tin xuất');
+      info.getRow(4).getCell(2).value = [q ? 'Từ khóa: ' + q : '', role ? 'Vai trò: ' + role : ''].filter(Boolean).join('; ') || 'Tất cả tài khoản';
+    }
+    await sendReport(req, res, wb, `nguoi-dung-${todayVN()}`, 'Danh sách tài khoản');
   } catch (err) {
     console.error("Export users failed:", err);
-    if (!res.headersSent) res.status(500).send("Không thể xuất file Excel, vui lòng thử lại.");
+    if (!res.headersSent) res.status(500).send("Không thể xuất báo cáo, vui lòng thử lại.");
   }
-});
+}
+router.get('/admin/export/users.xlsx', ...guard, exportUsers);
+router.get('/admin/export/users.pdf', ...guard, exportUsers);
 
 module.exports = router;

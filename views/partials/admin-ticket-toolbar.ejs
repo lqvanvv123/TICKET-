@@ -1,4 +1,6 @@
 <div class="ticket-toolbar">
+  <%# Partial ghép bộ lọc, tổng kết, link Excel và phân trang nếu trang cha có pagination. %>
+  <%# exportUrl/filterUrl do trang cha truyền; cần chuẩn bị đủ dữ liệu trước khi include khối này. %>
   <%- include('ticket-filters') %>
   <div class="ticket-toolbar-actions">
     <p class="ticket-toolbar-summary">
@@ -9,6 +11,7 @@
       <% } %>
     </p>
     <a class="btn btn-ghost" href="<%= exportUrl %>">Xuất Excel theo bộ lọc hiện tại</a>
+    <a class="btn btn-ghost" href="<%= exportUrl.replace('.xlsx', '.pdf') %>">Xuất PDF theo bộ lọc hiện tại</a>
     <% if (typeof pagination === 'undefined' || !pagination) { %>
       <a class="btn btn-ghost" href="<%= filterUrl() %>">Làm mới</a>
     <% } %>

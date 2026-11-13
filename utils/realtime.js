@@ -24,6 +24,7 @@ function init(httpServer, sessionMiddleware) {
     }
     try {
       const account = await User.findById(sessUser.id).select('role').lean();
+      // Đọc quyền thực tế từ database để kết nối lại không dùng vai trò cũ trong session.
       if (!account || !socket.connected) return socket.disconnect(true);
       socket.join("user:" + sessUser.id);
       if (["admin", "staff"].includes(account.role)) socket.join("admins");
@@ -32,8 +33,10 @@ function init(httpServer, sessionMiddleware) {
   return io;
 }
 
+// event là tên sự kiện; payload là dữ liệu gửi kèm. Phòng admins gồm cả admin và staff.
 const toAdmins = (event, payload) => io && io.to("admins").emit(event, payload);
 const toUser = (userId, event, payload) => io && io.to("user:" + userId).emit(event, payload);
+// Đổi quyền/xóa tài khoản thì ngắt các socket cũ để không tiếp tục nhận dữ liệu theo quyền trước đó.
 const disconnectUser = (userId) => io && io.in("user:" + userId).disconnectSockets(true);
 
 // Tạo thông báo trong DB rồi đẩy ngay tới người nhận
@@ -56,6 +59,7 @@ async function notify(recipientIds, ticketId, message) {
 async function renderAdminTicket(ticket) {
   const locals = {
     t: ticket,
+    deadlines: require('../public/js/deadlines'),
     STATUS: Ticket.STATUS,
     STATUS_SLUG: Ticket.STATUS_SLUG,
     PRIORITY_SLUG: Ticket.PRIORITY_SLUG,
@@ -63,6 +67,8 @@ async function renderAdminTicket(ticket) {
   };
   const dir = path.join(__dirname, "..", "views", "partials");
   const template = path.join(dir, "admin-ticket-row.ejs");
+  // Render đồng thời hai bản: admin có nút xóa/phân công, staff chỉ có thao tác phù hợp.
+  // Quyền theo người phụ trách được JS kiểm tra lại bằng ID tài khoản đang mở trang.
   const [rowHtml, staffRowHtml] = await Promise.all([
     ejs.renderFile(template, { ...locals, user: { role: 'admin' } }),
     ejs.renderFile(template, { ...locals, user: { role: 'staff' } }),

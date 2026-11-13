@@ -1,0 +1,5 @@
+<% const deadlineState = deadlines.info(t); %>
+<span class="ticket-deadline deadline-<%= deadlineState.key %>" data-deadline-ticket="<%= t._id %>" data-due-at="<%= t.dueAt ? new Date(t.dueAt).toISOString() : '' %>" data-status="<%= t.status %>" data-resolved-at="<%= t.resolvedAt ? new Date(t.resolvedAt).toISOString() : '' %>">
+  <strong data-deadline-label><%= deadlineState.label %></strong>
+  <time <%- t.dueAt ? '' : 'hidden' %> datetime="<%= t.dueAt ? new Date(t.dueAt).toISOString() : '' %>"><%= t.dueAt ? deadlines.format(t.dueAt) : '' %></time>
+</span>

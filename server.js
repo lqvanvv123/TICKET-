@@ -32,16 +32,29 @@ async function seedAdmin() {
   }
 }
 
+// EJS tạo HTML từ dữ liệu server; public chứa CSS, JS và các tài nguyên trình duyệt tải về.
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));
+// Đọc dữ liệu form POST vào req.body (ví dụ status, assignedTo, username).
 app.use(express.urlencoded({ extended: true }));
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || "secret-key",
   resave: false,
   saveUninitialized: true,
 });
+// Session lưu tài khoản đăng nhập giữa các request; cần đặt trước các route sử dụng req.session.
 app.use(sessionMiddleware);
+// Flash lưu ở session chỉ hiển thị một lần trên trang đích, không bị API polling tiêu thụ.
+app.use((req, res, next) => {
+  res.locals.uiFlash = null;
+  if (req.method === 'GET' && ['/user', '/admin', '/admin/users'].includes(req.path)) {
+    res.locals.uiFlash = req.session.uiFlash || null;
+    delete req.session.uiFlash;
+  }
+  next();
+});
 
+// Đăng ký các nhóm đường dẫn: đăng nhập, yêu cầu, quản trị, thông báo, chat và xuất báo cáo.
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(adminRoutes);

@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tr.className = "empty-row";
       tr.id = "emptyRow";
       tr.innerHTML =
-        '<td colspan="7">Bạn chưa gửi yêu cầu nào — điền vào form phía trên để gửi yêu cầu đầu tiên.</td>';
+        '<td colspan="8">Bạn chưa gửi yêu cầu nào — điền vào form phía trên để gửi yêu cầu đầu tiên.</td>';
       tbody.appendChild(tr);
     }
   });

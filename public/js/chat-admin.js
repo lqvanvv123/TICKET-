@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showList() {
+    // Chuyển về danh sách hội thoại và thay bộ hẹn giờ cũ bằng lịch tải danh sách mỗi 5 giây.
     view = "list";
     listHead.style.display = "flex";
     listBox.style.display = "block";
@@ -43,11 +44,12 @@ document.addEventListener("DOMContentLoaded", () => {
     detailMessages.style.display = "none";
     detailForm.style.display = "none";
     if (pollTimer) clearInterval(pollTimer);
-    loadConversations();
+    loadConversations(true);
     pollTimer = setInterval(loadConversations, 5000);
   }
 
   function showDetail(userId, username) {
+    // Ghi nhớ user đang hỗ trợ để gửi/tải đúng cuộc trò chuyện; tải nội dung mỗi 4 giây.
     view = "detail";
     activeUserId = userId;
     activeUsername = username;
@@ -59,23 +61,23 @@ document.addEventListener("DOMContentLoaded", () => {
     detailForm.style.display = "flex";
     detailUsername.textContent = username;
     if (pollTimer) clearInterval(pollTimer);
-    loadDetail();
+    loadDetail(true);
     pollTimer = setInterval(loadDetail, 4000);
     setTimeout(() => detailInput && detailInput.focus(), 150);
   }
 
-  async function loadConversations() {
+  async function loadConversations(initial = false) {
     try {
-      const res = await fetch("/chat/api/conversations");
-      if (!res.ok) return;
-      const data = await res.json();
+      if (initial) listBox.innerHTML = '<p class="chat-empty" role="status">Đang tải hội thoại…</p>';
+      const data = await window.ITUI.request('/chat/api/conversations');
       renderList(data.conversations || []);
     } catch (e) {
-      /* bỏ qua */
+      if (initial) { listBox.innerHTML = '<p class="chat-empty">Chưa tải được hội thoại. Đang thử lại…</p>'; window.ITUI.toast(e.message, 'error'); }
     }
   }
 
   function renderList(conversations) {
+    // API trả từng hội thoại với tin cuối và số chưa đọc; escapeHtml trước khi chèn nội dung vào HTML.
     if (!conversations.length) {
       listBox.innerHTML = '<p class="chat-empty">Chưa có cuộc trò chuyện nào.</p>';
       return;
@@ -96,16 +98,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  async function loadDetail() {
+  async function loadDetail(initial = false) {
+    // activeUserId quyết định cuộc trò chuyện được gọi tới API messages/:userId.
     if (!activeUserId) return;
+    const requestedUserId = activeUserId;
     try {
-      const res = await fetch("/chat/api/messages/" + activeUserId);
-      if (!res.ok) return;
-      const data = await res.json();
+      if (initial) detailMessages.innerHTML = '<p class="chat-empty" role="status">Đang tải tin nhắn…</p>';
+      const data = await window.ITUI.request('/chat/api/messages/' + requestedUserId);
+      if (activeUserId !== requestedUserId || view !== 'detail') return;
       renderDetail(data.messages || []);
       refreshBadge();
     } catch (e) {
-      /* bỏ qua */
+      if (initial && requestedUserId === activeUserId) { detailMessages.innerHTML = '<p class="chat-empty">Chưa tải được tin nhắn. Đang thử lại…</p>'; window.ITUI.toast(e.message, 'error'); }
     }
   }
 
@@ -142,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function closePanel() {
+    // Hủy hẹn giờ tải nội dung khi đóng panel để không tiếp tục hỏi hội thoại đang ẩn.
     isOpen = false;
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");
@@ -157,17 +162,21 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const text = detailInput.value.trim();
     if (!text || !activeUserId) return;
-    detailInput.value = "";
+    const button = detailForm.querySelector('button[type="submit"]');
+    if (button.disabled) return;
+    const recipientId = activeUserId;
+    const restore = window.ITUI.busy(button, 'Đang gửi…');
     try {
-      const res = await fetch("/chat/api/messages/" + activeUserId, {
+      await window.ITUI.request("/chat/api/messages/" + recipientId, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "text=" + encodeURIComponent(text),
       });
-      if (res.ok) loadDetail();
+      if (detailInput.value.trim() === text) detailInput.value = '';
+      if (recipientId === activeUserId) loadDetail();
     } catch (e) {
-      /* bỏ qua lỗi mạng tạm thời */
-    }
+      window.ITUI.toast(e.message, 'error');
+    } finally { restore(); }
   });
 
   refreshBadge();

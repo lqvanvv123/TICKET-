@@ -1,0 +1,3 @@
+<%# Chạy được cả khi trang cha chưa truyền fieldErrors; không bao giờ chứa giá trị mật khẩu. %>
+<% const fieldMessage = typeof fieldErrors !== 'undefined' && fieldErrors[name] || ''; %>
+<p class="field-error" id="<%= typeof inputId !== 'undefined' ? inputId : name %>-error" data-field-error="<%= name %>" <%= fieldMessage ? '' : 'hidden' %>><%= fieldMessage %></p>

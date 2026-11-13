@@ -1,3 +1,5 @@
+// Schema mô tả dữ liệu một yêu cầu và các giới hạn khi lưu vào MongoDB.
+// Ticket tham chiếu User bằng ObjectId; dùng populate ở route/service để lấy tên hiển thị.
 const mongoose = require("mongoose");
 
 // 3 trạng thái đúng theo yêu cầu: chưa sửa -> đang sửa lỗi -> hoàn thành
@@ -87,6 +89,13 @@ const ticketSchema = new mongoose.Schema(
     requestType: { type: String, enum: Object.values(REQUEST_TYPE), default: REQUEST_TYPE.OTHER },
     attachments: { type: [attachmentSchema], default: [] },
     resolvedAt: { type: Date, default: null },
+    // null giữ tương thích yêu cầu cũ; chỉ Admin đặt hạn, mọi mốc giờ lưu ở UTC.
+    dueAt: { type: Date, default: null, index: true },
+    deadlineHistory: { type: [{
+      from: { type: Date, default: null }, to: { type: Date, default: null },
+      changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      changedByName: { type: String, default: '' }, changedAt: { type: Date, default: Date.now },
+    }], default: [] },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
     assignmentHistory: { type: [{
       assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

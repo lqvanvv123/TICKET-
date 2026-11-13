@@ -1,12 +1,17 @@
 <!DOCTYPE html>
+<%# Trang user gồm form tạo yêu cầu và lịch sử cá nhân; dữ liệu đã được route /user lọc theo chủ sở hữu. %>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
+  <script src="/js/icons.js" defer></script>
+  <script src="/js/ui.js" defer></script>
+  <script src="/js/deadlines.js" defer></script>
   <title>Yêu cầu của tôi — Bàn hỗ trợ IT</title>
 </head>
 <body>
+  <%- include('partials/feedback') %>
   <%- include('partials/sidebar') %>
   <div class="container has-sidebar">
     <div class="topbar">
@@ -17,27 +22,30 @@
       <div class="topbar-actions">
         <span class="user-tag">Đăng nhập với <b><%= user.username %></b></span>
         <%- include('partials/notif-bell', { notifications }) %>
-        <a href="/logout" class="logout-link">Đăng xuất</a>
+        <a href="/logout" class="logout-link"><%- include('partials/icon', { name: 'logout' }) %> Đăng xuất</a>
       </div>
     </div>
 
 
     <div class="card">
+      <%# details/summary tạo khối mở rộng không cần JS; có lỗi thì tự mở để người dùng sửa form. %>
       <details class="new-ticket-toggle" <%= formError ? 'open' : '' %>>
-        <summary class="new-ticket-summary">➕ Tạo yêu cầu mới</summary>
+        <summary class="new-ticket-summary"><%- include('partials/icon', { name: 'plus' }) %> Tạo yêu cầu mới</summary>
         <div class="new-ticket-body">
-          <% if (formError) { %> <p class="error-box"><%= formError %></p> <% } %>
-          <form action="/user/ticket" method="POST" enctype="multipart/form-data">
+          <% if (formError) { %> <p class="error-box" role="alert"><%= formError %></p> <% } %>
+          <%# multipart/form-data cho phép gửi cả ô nhập và file; name phải khớp req.body/req.files ở server. %>
+          <form action="/user/ticket" method="POST" enctype="multipart/form-data" data-loading-text="?ang g?i y?u c?u?">
             <div class="field">
               <label for="title">Tiêu đề lỗi</label>
-              <input type="text" id="title" name="title" placeholder="VD: Máy in không in được" required>
+              <input type="text" id="title" name="title" value="<%= typeof formValues !== 'undefined' ? formValues.title || '' : '' %>" placeholder="VD: Máy in không in được" required>
+              <%- include('partials/field-error', { name: 'title' }) %>
             </div>
             <div class="field-row">
               <div class="field">
                 <label for="requestType">Loại yêu cầu</label>
                 <select id="requestType" name="requestType">
                   <% Object.values(REQUEST_TYPE).forEach(rt => { %>
-                    <option value="<%= rt %>" <%= rt === REQUEST_TYPE.OTHER ? 'selected' : '' %>><%= rt %></option>
+                    <option value="<%= rt %>" <%= rt === (typeof formValues !== 'undefined' && formValues.requestType || REQUEST_TYPE.OTHER) ? 'selected' : '' %>><%= rt %></option>
                   <% }) %>
                 </select>
               </div>
@@ -45,18 +53,20 @@
                 <label for="priority">Mức độ ưu tiên</label>
                 <select id="priority" name="priority">
                   <% Object.values(PRIORITY).forEach(p => { %>
-                    <option value="<%= p %>" <%= p === PRIORITY.MEDIUM ? 'selected' : '' %>><%= p %></option>
+                    <option value="<%= p %>" <%= p === (typeof formValues !== 'undefined' && formValues.priority || PRIORITY.MEDIUM) ? 'selected' : '' %>><%= p %></option>
                   <% }) %>
                 </select>
               </div>
             </div>
             <div class="field">
               <label for="description">Mô tả chi tiết</label>
-              <textarea id="description" name="description" placeholder="Lỗi xảy ra khi nào, trên máy nào, đã thử làm gì..." required></textarea>
+              <textarea id="description" name="description" placeholder="Lỗi xảy ra khi nào, trên máy nào, đã thử làm gì..." required><%= typeof formValues !== 'undefined' ? formValues.description || '' : '' %></textarea>
+              <%- include('partials/field-error', { name: 'description' }) %>
             </div>
             <div class="field">
               <label for="attachments">Đính kèm ảnh/tài liệu (tối đa 5 file, mỗi file ≤ 5MB)</label>
               <input type="file" id="attachments" name="attachments" multiple accept="image/*,.pdf,.doc,.docx,.txt">
+              <%- include('partials/field-error', { name: 'attachments' }) %>
             </div>
             <button type="submit" class="btn btn-primary" style="width: auto; padding-left: 22px; padding-right: 22px;">Gửi yêu cầu</button>
           </form>
@@ -76,10 +86,12 @@
               <th>Đính kèm</th>
               <th>Trạng thái</th>
               <th>Người xử lý</th>
+              <th>Hạn xử lý</th>
               <th>Ngày gửi</th>
             </tr>
           </thead>
           <tbody id="ticketTbody">
+            <%# data-ticket-id giúp user-live.js tìm đúng dòng khi trạng thái hoặc người xử lý thay đổi. %>
             <% tickets.forEach(t => { %>
               <tr data-ticket-id="<%= t._id %>">
                 <td>
@@ -91,11 +103,12 @@
                 <td><%- include('partials/attachments', { attachments: t.attachments }) %></td>
                 <td><span class="stamp stamp-<%= STATUS_SLUG[t.status] %> js-stamp"><%= t.status %></span></td>
                 <td class="js-assignee"><%= t.assignedTo ? t.assignedTo.username : 'Chưa phân công' %></td>
+                <td><%- include('partials/ticket-deadline', { t }) %></td>
                 <td class="ticket-date"><%= new Date(t.createdAt).toLocaleString('vi-VN') %></td>
               </tr>
             <% }) %>
             <% if (tickets.length === 0) { %>
-              <tr class="empty-row" id="emptyRow"><td colspan="7">Bạn chưa gửi yêu cầu nào — điền vào form phía trên để gửi yêu cầu đầu tiên.</td></tr>
+              <tr class="empty-row" id="emptyRow"><td colspan="8">Bạn chưa gửi yêu cầu nào — điền vào form phía trên để gửi yêu cầu đầu tiên.</td></tr>
             <% } %>
           </tbody>
         </table>

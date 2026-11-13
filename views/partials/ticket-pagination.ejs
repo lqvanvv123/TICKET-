@@ -1,7 +1,14 @@
+<%# Link giữ nguyên mọi bộ lọc; chỉ số trang lấy từ database, không tính theo số dòng đang có trên DOM. %>
 <nav class="ticket-pagination" aria-label="Phân trang yêu cầu">
-  <span><%= pagination.total %> kết quả · Trang <%= pagination.page %>/<%= pagination.pages %></span>
-  <% if (pagination.page > 1) { %><a class="btn btn-ghost" href="<%= filterUrl(pagination.page - 1) %>">← Trước</a><% } %>
-  <% if (pagination.page < pagination.pages) { %><a class="btn btn-ghost" href="<%= filterUrl(pagination.page + 1) %>">Tiếp →</a><% } %>
-  <a class="btn btn-ghost" href="<%= filterUrl(pagination.page) %>">Làm mới</a>
+  <span class="ticket-page-summary"><%= pagination.total ? pagination.from + '–' + pagination.to : '0' %> / <%= pagination.total %> kết quả · Trang <%= pagination.page %>/<%= pagination.pages %></span>
+  <div class="ticket-page-links">
+    <% if (pagination.page > 1) { %><a class="btn btn-ghost" href="<%= filterUrl(pagination.page - 1) %>" rel="prev"><%- include('icon', { name: 'arrow-left' }) %>Trước</a><% } %>
+    <% const visiblePages = [...new Set([1,pagination.page-1,pagination.page,pagination.page+1,pagination.pages])].filter(page => page >= 1 && page <= pagination.pages).sort((a,b)=>a-b); let previousPage = 0; %>
+    <% visiblePages.forEach(page => { %>
+      <% if(previousPage && page - previousPage > 1) { %><span aria-hidden="true">…</span><% } %>
+      <% if(page === pagination.page) { %><span class="btn ticket-current-page" aria-current="page" aria-label="Trang <%= page %>"><%= page %></span><% } else { %><a class="btn btn-ghost" href="<%= filterUrl(page) %>" aria-label="Trang <%= page %>"><%= page %></a><% } %>
+      <% previousPage = page; %>
+    <% }) %>
+    <% if (pagination.page < pagination.pages) { %><a class="btn btn-ghost" href="<%= filterUrl(pagination.page + 1) %>" rel="next">Tiếp<%- include('icon', { name: 'arrow-right' }) %></a><% } %>
+  </div>
 </nav>
-<p id="ticketListChanged" class="ticket-change-notice" role="status" hidden>Danh sách có thay đổi. Bấm “Làm mới” để cập nhật bộ lọc, số kết quả và phân trang.</p>

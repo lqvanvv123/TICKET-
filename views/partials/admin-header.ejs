@@ -1,4 +1,5 @@
 <div class="topbar">
+  <%# Thanh đầu trang dùng chung: pageTitle do trang cha truyền, user/notifications lấy từ dữ liệu render. %>
   <div>
     <p class="topbar-eyebrow">Bàn hỗ trợ IT</p>
     <h2><%= pageTitle %></h2>
@@ -6,7 +7,7 @@
   <div class="topbar-actions">
     <span class="user-tag">Đăng nhập với <b><%= user.username %></b> · <%= user.role === "staff" ? "Nhân viên IT" : "Admin IT" %></span>
     <%- include('notif-bell', { notifications }) %>
-    <a href="/logout" class="logout-link">Đăng xuất</a>
+    <a href="/logout" class="logout-link"><%- include('icon', { name: 'logout' }) %> Đăng xuất</a>
   </div>
 </div>
 

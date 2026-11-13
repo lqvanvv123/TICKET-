@@ -1,0 +1,27 @@
+<%# Toàn bộ phần này được thay đồng thời khi realtime cập nhật, gồm tổng số, link xuất và phân trang. %>
+<section class="card ticket-results-card" aria-label="Kết quả yêu cầu">
+  <div class="ticket-results-toolbar">
+    <div><h3><%= pagination.total %> yêu cầu phù hợp</h3><p class="ticket-section-hint">Mới nhất trước · Bấm tiêu đề để xem mô tả, loại yêu cầu và file đính kèm.</p></div>
+    <% if(user.role === 'admin' && !filterError) { %>
+      <details class="ticket-export-menu">
+        <summary class="btn btn-ghost"><%- include('icon', {name:'download'}) %>Xuất báo cáo</summary>
+        <div class="ticket-menu-panel">
+          <a href="<%= exportUrl %>">Tải Excel (.xlsx)</a>
+          <a href="<%= exportUrl.replace('.xlsx?', '.pdf?') %>">Tải PDF</a>
+          <small>Xuất toàn bộ <%= pagination.total %> kết quả theo bộ lọc, gồm mọi trang.</small>
+        </div>
+      </details>
+    <% } %>
+  </div>
+  <% if(activeFilters.length) { %><div class="ticket-active-filters" aria-label="Bộ lọc đang áp dụng"><% activeFilters.forEach(item => { %><a href="<%= item.removeUrl %>" aria-label="Bỏ lọc <%= item.label %>"><%= item.label %><span aria-hidden="true">×</span></a><% }) %></div><% } %>
+  <div class="ticket-table-wrap">
+    <table class="ticket-table"><caption class="ticket-sr-only">Danh sách yêu cầu, từ kết quả <%= pagination.from %> đến <%= pagination.to %></caption>
+      <thead><tr><th scope="col">Yêu cầu</th><th scope="col">Ưu tiên</th><th scope="col">Trạng thái</th><th scope="col">Người xử lý</th><th scope="col">Hạn xử lý</th><th scope="col">Thao tác</th></tr></thead>
+      <tbody id="ticketTbody">
+        <% tickets.forEach(t => { %><%- include('admin-ticket-row', {t}) %><% }) %>
+        <% if(!tickets.length) { %><tr class="empty-row" id="emptyRow"><td colspan="6"><strong><%= filterError ? 'Chưa áp dụng được bộ lọc' : activeFilters.length ? 'Không tìm thấy yêu cầu phù hợp' : 'Chưa có yêu cầu nào' %></strong><p><%= filterError ? 'Chỉnh lại điều kiện rồi bấm Áp dụng.' : activeFilters.length ? 'Thử từ khóa khác hoặc bỏ bớt điều kiện lọc.' : 'Yêu cầu mới của người dùng sẽ xuất hiện tại đây.' %></p><% if(activeFilters.length) { %><a class="btn btn-ghost" href="/admin">Xóa bộ lọc</a><% } %></td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('ticket-pagination') %>
+</section>

@@ -1,35 +1,39 @@
-<tr class="status-<%= STATUS_SLUG[t.status] %>" data-ticket-id="<%= t._id %>" data-assignee-id="<%= t.assignedTo ? String(t.assignedTo._id || t.assignedTo) : '' %>">
-  <td class="ticket-id">#<%= t._id.toString().slice(-6) %></td>
-  <td><%= t.user ? t.user.username : 'N/A' %></td>
-  <td>
+<% const ownerId = t.assignedTo ? String(t.assignedTo._id || t.assignedTo) : ''; const locked = user.role === 'staff' && ownerId !== String(user.id || ''); %>
+<tr class="status-<%= STATUS_SLUG[t.status] %>" data-ticket-id="<%= t._id %>" data-assignee-id="<%= ownerId %>">
+  <td class="ticket-main-cell">
     <div class="ticket-title"><a href="/tickets/<%= t._id %>"><%= t.title %></a></div>
-    <div class="ticket-desc"><%= t.description %></div>
+    <div class="ticket-row-meta"><span class="ticket-id">#<%= String(t._id).slice(-6) %></span><span><%= t.user ? t.user.username : 'Tài khoản đã xóa' %></span></div>
+    <% if(t.createdAt) { %><time class="ticket-row-date" datetime="<%= new Date(t.createdAt).toISOString() %>"><%= new Date(t.createdAt).toLocaleString('vi-VN', {timeZone:'Asia/Ho_Chi_Minh'}) %></time><% } %>
   </td>
-  <td><span class="type-badge type-<%= REQUEST_TYPE_SLUG[t.requestType] %>"><%= t.requestType %></span></td>
-  <td><span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span></td>
-  <td><%- include('attachments', { attachments: t.attachments }) %></td>
-  <td>
+  <td data-label="Ưu tiên"><span class="prio-badge prio-<%= PRIORITY_SLUG[t.priority] %>"><%= t.priority %></span></td>
+  <td data-label="Trạng thái"><span class="stamp stamp-<%= STATUS_SLUG[t.status] %> js-stamp"><%= t.status %></span></td>
+  <td data-label="Người xử lý">
     <span class="js-assignee"><%= t.assignedTo ? t.assignedTo.username : 'Chưa phân công' %></span>
-    <% if (user.role === 'admin' && t.status !== STATUS.DONE) { %>
-      <div><a href="/tickets/<%= t._id %>">Phân công</a></div>
-    <% } else if (user.role === 'staff' && !t.assignedTo && t.status !== STATUS.DONE) { %>
-      <button class="btn btn-ghost js-claim-ticket" type="button" data-id="<%= t._id %>">Nhận xử lý</button>
-    <% } %>
+    <% if(user.role === 'admin' && t.status !== STATUS.DONE) { %><a class="ticket-row-link js-open-assignment" href="/tickets/<%= t._id %>">Phân công</a><% } %>
   </td>
-  <td>
-    <span class="stamp stamp-<%= STATUS_SLUG[t.status] %> js-stamp"><%= t.status %></span>
-    <div><button type="button" class="history-btn" data-history="<%= t._id %>">🕒 Lịch sử trạng thái</button></div>
+  <td data-label="Hạn xử lý"><%- include('ticket-deadline', {t}) %>
+    <% if(user.role === 'admin' && t.status !== STATUS.DONE) { %><a class="ticket-row-link js-open-deadline" href="/tickets/<%= t._id %>">Đặt / đổi hạn</a><% } %>
   </td>
-  <td>
-    <% if (t.status !== STATUS.DONE) { %>
-    <select class="js-status-select" data-id="<%= t._id %>" data-prev="<%= t.status %>" <%= user.role === 'staff' && (!t.assignedTo || String(t.assignedTo._id || t.assignedTo) !== String(user.id || '')) ? 'disabled' : '' %> aria-label="Đổi trạng thái yêu cầu #<%= t._id.toString().slice(-6) %>">
-      <% Object.values(STATUS).forEach(st => { %>
-        <option value="<%= st %>" <%= t.status === st ? 'selected' : '' %>><%= st %></option>
-      <% }) %>
-    </select>
+  <td class="ticket-actions-cell" data-label="Thao tác">
+    <%# Mọi nút bị ẩn/khóa chỉ phục vụ UX; server vẫn kiểm tra vai trò và người nhận. %>
+    <% if(user.role === 'staff' && !t.assignedTo && t.status !== STATUS.DONE) { %>
+      <button class="btn btn-primary js-claim-ticket" type="button" data-id="<%= t._id %>"><%- include('icon', {name:'user-check'}) %>Nhận xử lý</button>
     <% } %>
-    <% if (user.role === 'admin') { %>
-      <div><button type="button" class="btn-delete-ticket" data-delete-ticket="<%= t._id %>">🗑 Xóa yêu cầu</button></div>
+    <% if(t.status !== STATUS.DONE) { %>
+      <select class="js-status-select" data-id="<%= t._id %>" data-prev="<%= t.status %>" <%= locked ? 'disabled' : '' %> aria-label="Đổi trạng thái yêu cầu #<%= String(t._id).slice(-6) %>" <%= locked ? 'aria-describedby=permission-' + String(t._id) : '' %>>
+        <% Object.values(STATUS).forEach(status => { %><option value="<%= status %>" <%= t.status === status ? 'selected' : '' %>><%= status %></option><% }) %>
+      </select>
+      <% if(user.role === 'staff') { %><small id="permission-<%= t._id %>" class="ticket-permission-hint" <%= locked ? '' : 'hidden' %>><%= t.assignedTo ? 'Chỉ ' + t.assignedTo.username + ' được cập nhật.' : 'Nhận xử lý để cập nhật trạng thái.' %></small><% } %>
     <% } %>
+    <div class="ticket-secondary-actions">
+      <a class="ticket-row-link ticket-detail-link" href="/tickets/<%= t._id %>">Xem chi tiết</a>
+      <details class="ticket-row-menu">
+        <summary aria-label="Thêm thao tác cho yêu cầu #<%= String(t._id).slice(-6) %>">•••</summary>
+        <div class="ticket-menu-panel">
+          <button type="button" class="history-btn" data-history="<%= t._id %>"><%- include('icon', {name:'history'}) %>Lịch sử trạng thái</button>
+          <% if(user.role === 'admin') { %><button type="button" class="btn-delete-ticket" data-delete-ticket="<%= t._id %>"><%- include('icon', {name:'x'}) %>Xóa yêu cầu</button><% } %>
+        </div>
+      </details>
+    </div>
   </td>
 </tr>

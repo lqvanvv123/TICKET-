@@ -1,5 +1,7 @@
+<%# Sidebar nhóm IT: sidebar.js quản lý mở/đóng bằng ID; mục quản lý người dùng chỉ hiện cho admin. %>
+<%# aria-* cung cấp trạng thái và nhãn cho công cụ đọc màn hình, không quyết định quyền ở server. %>
 <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Mở menu" aria-expanded="false" aria-controls="appSidebar">
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+  <%- include('icon', { name: 'menu' }) %>
 </button>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -7,22 +9,22 @@
 <aside class="sidebar" id="appSidebar" aria-hidden="true">
   <div class="sidebar-head">
     <span class="sidebar-title">Menu</span>
-    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Đóng menu">✕</button>
+    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Đóng menu"><%- include('icon', { name: 'x' }) %></button>
   </div>
 
   <nav class="sidebar-nav">
     <% if (user.role === 'admin') { %>
-      <a href="/admin/users" class="sidebar-link <%= typeof activeTab !== 'undefined' && activeTab === 'users' ? 'active' : '' %>">👥 Quản lý người dùng</a>
+      <a href="/admin/users" class="sidebar-link <%= typeof activeTab !== 'undefined' && activeTab === 'users' ? 'active' : '' %>"><%- include('icon', { name: 'users' }) %> Quản lý người dùng</a>
     <% } %>
 
     <details class="kb-root">
-      <summary class="kb-nav-btn">📖 Cẩm nang xử lý nội bộ</summary>
+      <summary class="kb-nav-btn"><%- include('icon', { name: 'book-text' }) %> Cẩm nang xử lý nội bộ</summary>
 
       <div class="kb-body">
         <p class="kb-hint">Tài liệu tham khảo nhanh cho nhân viên IT khi xử lý ticket.</p>
 
         <details class="kb-category">
-          <summary>⏱️ SLA theo mức độ ưu tiên</summary>
+          <summary><%- include('icon', { name: 'clock' }) %> SLA theo mức độ ưu tiên</summary>
           <div class="kb-item">
             <p class="kb-q">Khẩn cấp</p>
             <p class="kb-a">Phản hồi trong 30 phút, xử lý xong trong 4 giờ làm việc. Ưu tiên xử lý trước mọi ticket khác.</p>
@@ -39,13 +41,10 @@
             <p class="kb-q">Thấp</p>
             <p class="kb-a">Phản hồi trong 1 ngày, xử lý xong trong 5 ngày làm việc.</p>
           </div>
-          <div class="kb-item">
-            <p class="kb-a" style="font-style: italic;">* Mốc thời gian mẫu — điều chỉnh theo chính sách thực tế của công ty.</p>
-          </div>
         </details>
 
         <details class="kb-category">
-          <summary>🛠️ Hướng dẫn xử lý theo loại yêu cầu</summary>
+          <summary><%- include('icon', { name: 'wrench' }) %> Hướng dẫn xử lý theo loại yêu cầu</summary>
           <div class="kb-item">
             <p class="kb-q">Phần cứng</p>
             <p class="kb-a">Xác nhận thiết bị, số serial (nếu có). Kiểm tra bảo hành trước khi thay linh kiện. Ghi lại linh kiện đã thay vào ticket.</p>
@@ -65,7 +64,7 @@
         </details>
 
         <details class="kb-category">
-          <summary>🚨 Khi cần leo thang (escalate)</summary>
+          <summary><%- include('icon', { name: 'badge-alert' }) %> Khi cần leo thang (escalate)</summary>
           <div class="kb-item">
             <p class="kb-q">Sự cố ảnh hưởng nhiều người / hệ thống lớn</p>
             <p class="kb-a">Báo ngay cho IT Manager/Trưởng nhóm, không tự xử lý một mình nếu vượt quá thẩm quyền hoặc kiến thức.</p>

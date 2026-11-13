@@ -1,45 +1,42 @@
-<form class="ticket-filters" action="<%= filterAction %>" method="GET" aria-label="Lọc yêu cầu">
+<%# GET luôn dùng được khi tắt JS. Không truyền page để mỗi lần áp dụng lọc bắt đầu từ trang 1. %>
+<form id="ticketFilters" class="ticket-filters" action="/admin" method="GET" aria-label="Lọc yêu cầu">
   <div class="field filter-search">
     <label for="filterQ">Tìm yêu cầu</label>
-    <input id="filterQ" name="q" type="search" maxlength="100" value="<%= filters.q %>" placeholder="Tiêu đề, mô tả hoặc mã đầy đủ">
+    <input id="filterQ" name="q" type="search" maxlength="100" value="<%= filters.q %>" placeholder="Tiêu đề hoặc mã, ví dụ #a1b2c3">
   </div>
-  <% for (const [key, label, values] of [['status', 'Trạng thái', STATUS], ['priority', 'Ưu tiên', PRIORITY], ['type', 'Loại yêu cầu', REQUEST_TYPE]]) { %>
-    <div class="field">
-      <label for="filter-<%= key %>"><%= label %></label>
-      <select id="filter-<%= key %>" name="<%= key %>">
-        <option value="">Tất cả</option>
-        <% Object.values(values).forEach(value => { %>
-          <option value="<%= value %>" <%= filters[key] === value ? 'selected' : '' %>><%= value %></option>
-        <% }) %>
-      </select>
-    </div>
-  <% } %>
-  <% if (user.role === 'admin') { %>
-    <div class="field">
-      <label for="filterRequester">Người gửi</label>
-      <select id="filterRequester" name="requester">
-        <option value="">Tất cả người gửi</option>
-        <% requesters.forEach(person => { %>
-          <option value="<%= person._id %>" <%= filters.requester === String(person._id) ? 'selected' : '' %>><%= person.username %></option>
-        <% }) %>
-      </select>
-    </div>
-  <% } %>
-  <div class="field">
-    <label for="filterAssignee">Người phụ trách</label>
-    <select id="filterAssignee" name="assignee">
-      <option value="">Tất cả</option>
-      <option value="unassigned" <%= filters.assignee === 'unassigned' ? 'selected' : '' %>>Chưa phân công</option>
-      <% if (user.role === 'admin') { %><option value="mine" <%= filters.assignee === 'mine' ? 'selected' : '' %>>Việc của tôi</option><% } %>
-      <% admins.forEach(person => { %>
-        <option value="<%= person._id %>" <%= filters.assignee === String(person._id) ? 'selected' : '' %>><%= person.username %></option>
-      <% }) %>
+  <div class="field"><label for="filterStatus">Trạng thái</label>
+    <select id="filterStatus" name="status"><option value="">Tất cả trạng thái</option><option value="open" <%= filters.status === 'open' ? 'selected' : '' %>>Còn mở</option>
+      <% Object.values(STATUS).forEach(value => { %><option value="<%= value %>" <%= filters.status === value ? 'selected' : '' %>><%= value %></option><% }) %>
     </select>
   </div>
-  <div class="field"><label for="filterFrom">Từ ngày</label><input id="filterFrom" type="date" name="from" value="<%= filters.from %>"></div>
-  <div class="field"><label for="filterTo">Đến ngày</label><input id="filterTo" type="date" name="to" value="<%= filters.to %>"></div>
-  <div class="filter-actions">
-    <button type="submit" class="btn btn-primary">Áp dụng</button>
-    <a class="btn btn-ghost" href="<%= filterAction %>">Xóa lọc</a>
+  <div class="field"><label for="filterAssignee">Người xử lý</label>
+    <select id="filterAssignee" name="assignee">
+      <option value="">Toàn bộ nhóm IT</option>
+      <option value="mine" <%= filters.assignee === 'mine' ? 'selected' : '' %>>Việc của tôi</option>
+      <option value="unassigned" <%= filters.assignee === 'unassigned' ? 'selected' : '' %>>Chưa phân công</option>
+      <% if (filters.assignee && !['mine','unassigned'].includes(filters.assignee) && !team.some(person => String(person._id) === filters.assignee)) { %><option value="<%= filters.assignee %>" selected>Tài khoản IT đã chọn</option><% } %>
+      <% team.forEach(person => { %><option value="<%= person._id %>" <%= filters.assignee === String(person._id) ? 'selected' : '' %>><%= person.username %></option><% }) %>
+    </select>
   </div>
+  <div class="field"><label for="filterDeadline">Hạn xử lý</label>
+    <select id="filterDeadline" name="deadline"><option value="">Tất cả hạn</option><% Object.entries(deadlines.LABELS).forEach(([value,label]) => { %><option value="<%= value %>" <%= filters.deadline === value ? 'selected' : '' %>><%= label %></option><% }) %></select>
+  </div>
+  <div class="field"><label for="filterPageSize">Mỗi trang</label>
+    <select id="filterPageSize" name="pageSize"><% [20,50].forEach(size => { %><option value="<%= size %>" <%= pagination.pageSize === size ? 'selected' : '' %>><%= size %> yêu cầu</option><% }) %></select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary"><%- include('icon', { name: 'check' }) %>Áp dụng</button>
+    <a class="btn btn-ghost" href="/admin">Xóa lọc</a>
+  </div>
+  <% const advancedCount = ['priority','type','from','to'].filter(key => filters[key]).length; %>
+  <details class="ticket-filter-more" <%= advancedCount ? 'open' : '' %>>
+    <summary>Lọc thêm<%= advancedCount ? ' (' + advancedCount + ')' : '' %></summary>
+    <div class="ticket-filter-extra">
+      <% for (const [key,label,values] of [['priority','Ưu tiên',PRIORITY],['type','Loại yêu cầu',REQUEST_TYPE]]) { %>
+        <div class="field"><label for="filter-<%= key %>"><%= label %></label><select id="filter-<%= key %>" name="<%= key %>"><option value="">Tất cả</option><% Object.values(values).forEach(value => { %><option value="<%= value %>" <%= filters[key] === value ? 'selected' : '' %>><%= value %></option><% }) %></select></div>
+      <% } %>
+      <div class="field"><label for="filterFrom">Ngày tạo từ</label><input id="filterFrom" type="date" name="from" value="<%= filters.from %>"></div>
+      <div class="field"><label for="filterTo">Ngày tạo đến</label><input id="filterTo" type="date" name="to" value="<%= filters.to %>"></div>
+    </div>
+  </details>
 </form>

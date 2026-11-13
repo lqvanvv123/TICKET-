@@ -1,28 +1,36 @@
 <!DOCTYPE html>
+<%# Form đăng nhập: server truyền error khi thông tin không hợp lệ; CSS auth-shell căn giữa khung. %>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
+  <script src="/js/icons.js" defer></script>
+  <script src="/js/ui.js" defer></script>
   <title>Đăng nhập — Bàn hỗ trợ IT</title>
 </head>
 <body>
+  <%- include('partials/feedback') %>
   <div class="auth-shell">
     <div class="auth-card">
       <p class="auth-mark">BÀN HỖ TRỢ IT</p>
       <h2 class="auth-title">Đăng nhập</h2>
 
       <div class="card ticket-stub">
-        <% if (error) { %> <p class="error-box"><%= error %></p> <% } %>
+        <% if (error) { %> <p class="error-box" role="alert"><%= error %></p> <% } %>
 
-        <form action="/login" method="POST">
+        <%# Các name username/password trở thành req.body ở route POST /login. %>
+        <%# required kiểm tra ở trình duyệt; server vẫn phải kiểm tra lại dữ liệu và mật khẩu. %>
+        <form action="/login" method="POST" data-loading-text="?ang ??ng nh?p?">
           <div class="field">
             <label for="username">Tên đăng nhập</label>
-            <input type="text" id="username" name="username" required autofocus>
+            <input type="text" id="username" name="username" value="<%= typeof formValues !== 'undefined' ? formValues.username : '' %>" required autofocus>
+            <%- include('partials/field-error', { name: 'username' }) %>
           </div>
           <div class="field">
             <label for="password">Mật khẩu</label>
             <input type="password" id="password" name="password" required>
+            <%- include('partials/field-error', { name: 'password' }) %>
           </div>
           <button type="submit" class="btn btn-primary">Đăng nhập</button>
         </form>

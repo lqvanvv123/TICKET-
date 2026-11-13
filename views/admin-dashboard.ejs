@@ -1,167 +1,49 @@
 <!DOCTYPE html>
+<%# Bộ lọc và nút nằm ngoài dashboardContent để cập nhật dữ liệu không làm mất thao tác đang nhập. %>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
-  <title>Thống kê — Bàn hỗ trợ IT</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <script src="/js/icons.js" defer></script>
+  <script src="/js/ui.js" defer></script>
+  <script src="/js/deadlines.js" defer></script>
+  <title>Dashboard — Bàn hỗ trợ IT</title>
 </head>
 <body>
+  <%- include('partials/feedback') %>
   <%- include('partials/admin-sidebar') %>
-  <div class="container container-wide has-sidebar">
-    <%- include('partials/admin-header', { pageTitle: 'Thống kê' }) %>
-
-    <%- include('partials/page-head', {
-      title: 'Tổng quan',
-      hint: 'Số liệu thống kê tự cập nhật khi có yêu cầu mới, đổi trạng thái hoặc bị xóa.',
-      count: total
-    }) %>
-
-    <div class="stat-grid">
-      <div class="card stat-card stat-total">
-        <span class="stat-label">Tổng số yêu cầu</span>
-        <span class="stat-value"><%= total %></span>
-      </div>
-      <div class="card stat-card status-in-progress">
-        <span class="stat-label">Đang mở</span>
-        <span class="stat-value"><%= (byStatus[STATUS.NEW] || 0) + (byStatus[STATUS.IN_PROGRESS] || 0) %></span>
-      </div>
-      <div class="card stat-card status-done">
-        <span class="stat-label">Đã hoàn thành</span>
-        <span class="stat-value"><%= byStatus[STATUS.DONE] || 0 %></span>
-      </div>
-      <div class="card stat-card stat-avg">
-        <span class="stat-label">Thời gian xử lý TB</span>
-        <span class="stat-value">
-          <% if (avgResolutionHours === null) { %>
-            —
-          <% } else if (avgResolutionHours < 24) { %>
-            <%= avgResolutionHours.toFixed(1) %>h
-          <% } else { %>
-            <%= (avgResolutionHours / 24).toFixed(1) %> ngày
-          <% } %>
-        </span>
-      </div>
-    </div>
-
-    <div class="chart-grid">
-      <div class="card">
-        <div class="card-head"><h3>Theo trạng thái</h3></div>
-        <div class="chart-box"><canvas id="chartStatus"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>Theo mức độ ưu tiên</h3></div>
-        <div class="chart-box"><canvas id="chartPriority"></canvas></div>
-      </div>
-      <div class="card chart-wide">
-        <div class="card-head"><h3>Yêu cầu mới — 14 ngày gần nhất</h3></div>
-        <div class="chart-box"><canvas id="chartTrend"></canvas></div>
-      </div>
-      <div class="card chart-wide">
-        <div class="card-head"><h3>Theo loại yêu cầu</h3></div>
-        <div class="chart-box"><canvas id="chartType"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <main class="container container-wide has-sidebar dashboard-workspace">
+    <%- include('partials/admin-header', { pageTitle: 'Dashboard' }) %>
+    <div class="dashboard-heading"><div><p class="topbar-eyebrow">Theo dõi & điều phối</p><h1>Tổng quan yêu cầu IT</h1><p class="dashboard-hint">Theo dõi tiếp nhận, phân công và kết quả xử lý ở cùng một nơi.</p></div><a class="btn btn-ghost" href="/admin"><%- include('partials/icon', { name: 'clipboard-check' }) %>Danh sách yêu cầu</a></div>
+    <section class="card dashboard-filter-card">
+      <form id="dashboardFilters" class="dashboard-filters" action="/admin/dashboard" method="GET">
+        <div class="field"><label for="dashRange">Ngày tạo yêu cầu</label><select id="dashRange" name="range"><% for (const [value, label] of [['all', 'Toàn thời gian'], ['7', '7 ngày gần nhất'], ['14', '14 ngày gần nhất'], ['30', '30 ngày gần nhất'], ['90', '90 ngày gần nhất'], ['custom', 'Tùy chọn ngày']]) { %><option value="<%= value %>" <%= filters.range === value ? 'selected' : '' %>><%= label %></option><% } %></select></div>
+        <div class="field" data-custom-date><label for="dashFrom">Từ ngày</label><input id="dashFrom" type="date" name="from" value="<%= filters.from %>"></div>
+        <div class="field" data-custom-date><label for="dashTo">Đến ngày</label><input id="dashTo" type="date" name="to" value="<%= filters.to %>"></div>
+        <div class="field"><label for="dashStatus">Trạng thái</label><select id="dashStatus" name="status"><option value="">Tất cả trạng thái</option><option value="open" <%= filters.status === 'open' ? 'selected' : '' %>>Còn mở</option><% Object.values(STATUS).forEach(status => { %><option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= status %></option><% }) %></select></div>
+        <div class="field"><label for="dashPriority">Ưu tiên</label><select id="dashPriority" name="priority"><option value="">Tất cả mức ưu tiên</option><% Object.values(PRIORITY).forEach(priority => { %><option value="<%= priority %>" <%= filters.priority === priority ? 'selected' : '' %>><%= priority %></option><% }) %></select></div>
+        <div class="field"><label for="dashType">Loại yêu cầu</label><select id="dashType" name="type"><option value="">Tất cả loại yêu cầu</option><% Object.values(REQUEST_TYPE).forEach(type => { %><option value="<%= type %>" <%= filters.type === type ? 'selected' : '' %>><%= type %></option><% }) %></select></div>
+        <div class="field"><label for="dashAssignee">Người phụ trách</label><select id="dashAssignee" name="assignee"><option value="">Toàn bộ nhóm IT</option><option value="mine" <%= filters.assignee === 'mine' ? 'selected' : '' %>>Việc của tôi</option><option value="unassigned" <%= filters.assignee === 'unassigned' ? 'selected' : '' %>>Chưa phân công</option><% team.forEach(person => { %><option value="<%= person._id %>" <%= filters.assignee === String(person._id) ? 'selected' : '' %>><%= person.username %></option><% }) %></select></div>
+        <div class="field"><label for="dashDeadline">Hạn xử lý</label><select id="dashDeadline" name="deadline"><option value="">Tất cả hạn xử lý</option><% Object.entries(deadlines.LABELS).forEach(([value, label]) => { %><option value="<%= value %>" <%= filters.deadline === value ? 'selected' : '' %>><%= label %></option><% }) %></select></div>
+        <div class="dashboard-filter-actions"><button class="btn btn-primary" type="submit">Áp dụng bộ lọc</button><a class="btn btn-ghost" href="/admin/dashboard">Xóa lọc</a></div>
+      </form>
+      <p class="dashboard-hint">Khoảng ngày tính theo giờ Việt Nam, bao gồm cả ngày đầu và ngày cuối.</p>
+    </section>
+    <% if (filterError) { %><p class="error-box" role="alert"><%= filterError %></p><% } %>
+    <div class="dashboard-sync-bar"><label class="dashboard-auto"><input type="checkbox" id="dashboardAuto" checked> Tự cập nhật khi có thay đổi</label><span id="dashboardSync" role="status" class="dashboard-hint">Dữ liệu đã sẵn sàng</span><button class="btn btn-ghost" id="dashboardRefresh" type="button"><%- include('partials/icon', { name: 'history' }) %>Làm mới</button></div>
+    <div id="dashboardContent"><%- include('partials/dashboard-content') %></div>
+  </main>
   <%- include('partials/chat-widget-admin') %>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/realtime.js"></script>
   <script src="/js/notifications.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/chat-admin.js"></script>
-  <script>
-    // Màu biểu đồ lấy từ cùng bộ biến màu với bảng danh sách để giao diện đồng điệu
-    const css = getComputedStyle(document.documentElement);
-    const tok = (name) => css.getPropertyValue(name).trim();
-    const inkColor = tok("--ink-soft");
-    const gridColor = tok("--rule");
-    Chart.defaults.font.family = "IBM Plex Sans, sans-serif";
-    Chart.defaults.color = inkColor;
-    Chart.defaults.maintainAspectRatio = false;
-
-    const STATUS_SLUG = <%- JSON.stringify(STATUS_SLUG) %>;
-    const PRIORITY_SLUG = <%- JSON.stringify(PRIORITY_SLUG) %>;
-    const statusColor = { new: tok("--stamp-new"), "in-progress": tok("--stamp-progress"), done: tok("--stamp-done") };
-    const prioColor = { low: tok("--prio-low"), medium: tok("--prio-medium"), high: tok("--prio-high"), urgent: tok("--prio-urgent") };
-
-    const statusLabels = <%- JSON.stringify(Object.keys(byStatus)) %>;
-    const statusData = <%- JSON.stringify(Object.values(byStatus)) %>;
-    new Chart(document.getElementById("chartStatus"), {
-      type: "doughnut",
-      data: {
-        labels: statusLabels,
-        datasets: [{
-          data: statusData,
-          backgroundColor: statusLabels.map((l) => statusColor[STATUS_SLUG[l]]),
-          borderColor: tok("--surface"),
-          borderWidth: 2,
-        }],
-      },
-      options: { plugins: { legend: { position: "bottom" } } },
-    });
-
-    const prioLabels = <%- JSON.stringify(Object.keys(byPriority)) %>;
-    const prioData = <%- JSON.stringify(Object.values(byPriority)) %>;
-    new Chart(document.getElementById("chartPriority"), {
-      type: "bar",
-      data: {
-        labels: prioLabels,
-        datasets: [{ data: prioData, backgroundColor: prioLabels.map((l) => prioColor[PRIORITY_SLUG[l]]) }],
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } }, x: { grid: { display: false } } },
-      },
-    });
-
-    const trendLabels = <%- JSON.stringify(trend.labels) %>;
-    const trendData = <%- JSON.stringify(trend.counts) %>;
-    new Chart(document.getElementById("chartTrend"), {
-      type: "line",
-      data: {
-        labels: trendLabels,
-        datasets: [{
-          data: trendData,
-          borderColor: tok("--stamp-progress"),
-          backgroundColor: tok("--stamp-progress-bg"),
-          fill: true,
-          tension: 0.25,
-          pointRadius: 3,
-        }],
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } }, x: { grid: { display: false } } },
-      },
-    });
-
-    const typeLabels = <%- JSON.stringify(Object.keys(byRequestType)) %>;
-    const typeData = <%- JSON.stringify(Object.values(byRequestType)) %>;
-    new Chart(document.getElementById("chartType"), {
-      type: "bar",
-      data: {
-        labels: typeLabels,
-        datasets: [{ data: typeData, backgroundColor: tok("--type-ink") }],
-      },
-      options: {
-        indexAxis: "y",
-        plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } }, y: { grid: { display: false } } },
-      },
-    });
-  </script>
-  <script>
-    // Số liệu thống kê đổi theo thời gian thực: có thay đổi yêu cầu thì tải lại sau 0,6 giây (gộp nhiều sự kiện)
-    (function () {
-      let timer = null;
-      function scheduleReload() {
-        clearTimeout(timer);
-        timer = setTimeout(() => location.reload(), 600);
-      }
-      ["ticket:created", "ticket:updated", "ticket:deleted"].forEach((ev) => window.socket.on(ev, scheduleReload));
-    })();
-  </script>
+  <%# Chỉ đưa dữ liệu biểu đồ vào JSON, escape dấu nhỏ hơn để không đóng script ngoài ý muốn. %>
+  <script type="application/json" id="dashboardData"><%- JSON.stringify(chartData).replace(/</g, '\u003c') %></script>
+  <script src="/vendor/chart.umd.min.js" defer></script>
+  <script src="/js/dashboard.js" defer></script>
 </body>
 </html>

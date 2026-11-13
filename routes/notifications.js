@@ -16,6 +16,7 @@ router.get("/api/notifications/count", requireLogin, async (req, res) => {
 
 // Danh sách thông báo mới nhất (cả đã đọc lẫn chưa đọc) + số chưa đọc
 router.get("/api/notifications", requireLogin, async (req, res) => {
+  // Hai truy vấn độc lập chạy cùng lúc: nội dung hiển thị và tổng số chưa đọc.
   const recipient = req.session.user.id;
   const [items, unread] = await Promise.all([
     Notification.find({ recipient }).sort({ createdAt: -1 }).limit(50),
@@ -46,6 +47,7 @@ router.delete("/api/notifications", requireLogin, async (req, res) => {
 
 // Đánh dấu 1 thông báo đã đọc
 router.post("/api/notifications/:id/read", requireLogin, async (req, res) => {
+  // Tìm bằng cả mã thông báo và chủ sở hữu: biết ID cũng không sửa được thông báo người khác.
   await Notification.findOneAndUpdate(
     { _id: req.params.id, recipient: req.session.user.id },
     { isRead: true }
@@ -55,6 +57,7 @@ router.post("/api/notifications/:id/read", requireLogin, async (req, res) => {
 
 // Xóa 1 thông báo
 router.delete("/api/notifications/:id", requireLogin, async (req, res) => {
+  // Điều kiện recipient tiếp tục giới hạn thao tác xóa trong tài khoản đang đăng nhập.
   await Notification.findOneAndDelete({ _id: req.params.id, recipient: req.session.user.id });
   res.json({ ok: true });
 });

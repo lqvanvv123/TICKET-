@@ -1,5 +1,7 @@
 <%# Tiêu đề khu vực dùng chung cho 2 trang admin: Danh sách / Thống kê %>
 <div class="page-head">
+  <%# title/hint/count do trang cha cung cấp; pageCount được JS tăng/giảm khi thêm hoặc xóa ticket. %>
+  <%# livePill chỉ báo kết nối Socket.IO qua data-state, không phải trạng thái của yêu cầu. %>
   <div class="page-head-text">
     <h3 class="page-head-title"><%= title %></h3>
     <p class="page-head-hint"><%= hint %></p>

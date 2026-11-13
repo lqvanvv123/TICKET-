@@ -21,6 +21,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB / file
 const MAX_FILES = 5;
 
 const storage = multer.diskStorage({
+  // destination chọn thư mục lưu; filename đổi tên để giảm nguy cơ trùng tên khi upload.
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -30,6 +31,8 @@ const storage = multer.diskStorage({
 });
 
 function fileFilter(req, file, cb) {
+  // Kiểm tra MIME do file upload khai báo, không phải phân tích nội dung thực của file.
+  // cb(null, false) bỏ qua file và để route hiển thị thông báo từ fileValidationError.
   if (!ALLOWED_MIME.has(file.mimetype)) {
     req.fileValidationError = "Chỉ chấp nhận file ảnh, PDF, Word hoặc .txt.";
     return cb(null, false);
@@ -38,6 +41,7 @@ function fileFilter(req, file, cb) {
 }
 
 const upload = multer({
+  // Giới hạn áp dụng ở server, dù người dùng bỏ qua giới hạn của form HTML.
   storage,
   fileFilter,
   limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILES },

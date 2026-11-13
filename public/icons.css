@@ -1,0 +1,48 @@
+/* SVG của Lucide Animated được chuyển từ React sang sprite; CSS thực hiện chuyển động trong EJS. */
+.ui-icon {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  flex-shrink: 0;
+  vertical-align: -0.18em;
+  margin-inline-end: .35em;
+  transform-origin: center;
+  pointer-events: none;
+  --icon-animation: icon-nod;
+}
+.ui-icon use { pointer-events: none; }
+:where(button, a, summary):hover > .ui-icon,
+:where(button, a, summary):focus-visible > .ui-icon,
+:where(button, a, summary):hover > span > .ui-icon,
+.ui-icon.is-animating { animation: var(--icon-animation) .6s ease-in-out; }
+.ui-icon--bell { --icon-animation: icon-ring; transform-origin: 50% 15%; }
+.ui-icon--message-circle, .ui-icon--plus, .ui-icon--user-check { --icon-animation: icon-pop; }
+.ui-icon--arrow-left { --icon-animation: icon-left; }
+.ui-icon--arrow-right, .ui-icon--send, .ui-icon--logout { --icon-animation: icon-right; }
+.ui-icon--download { --icon-animation: icon-down; }
+.ui-icon--history, .ui-icon--clock, .ui-icon--wrench { --icon-animation: icon-turn; }
+.chat-fab > .ui-icon { width: 25px; height: 25px; margin: 0; }
+:where(.sidebar-toggle, .sidebar-close, .history-close, .chat-panel-close, .chat-back-btn, .notif-del, .bell-btn) > .ui-icon {
+  width: 19px;
+  height: 19px;
+  margin: 0;
+}
+.notif-del, .sidebar-close, .history-close, .chat-panel-close, .chat-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.attach-chip .ui-icon { width: 15px; height: 15px; margin: 0; }
+.kb-category > summary > .ui-icon { width: 17px; height: 17px; }
+.stat-label .ui-icon { opacity: .7; }
+@keyframes icon-ring { 0%,100% { transform: rotate(0); } 20%,60% { transform: rotate(-12deg); } 40%,80% { transform: rotate(12deg); } }
+@keyframes icon-pop { 0%,100% { transform: scale(1); } 40% { transform: scale(1.18); } 70% { transform: scale(.94); } }
+@keyframes icon-nod { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-2px); } 70% { transform: translateY(1px); } }
+@keyframes icon-turn { 0%,100% { transform: rotate(0); } 40% { transform: rotate(-20deg); } 70% { transform: rotate(10deg); } }
+@keyframes icon-left { 0%,100% { transform: translateX(0); } 45% { transform: translateX(-3px); } }
+@keyframes icon-right { 0%,100% { transform: translateX(0); } 45% { transform: translateX(3px); } }
+@keyframes icon-down { 0%,100% { transform: translateY(0); } 45% { transform: translateY(3px); } }
+/* Tôn trọng tùy chọn giảm chuyển động của hệ điều hành, kể cả hiệu ứng do thông báo mới kích hoạt. */
+@media (prefers-reduced-motion: reduce) {
+  .ui-icon { animation: none !important; transition: none !important; }
+}

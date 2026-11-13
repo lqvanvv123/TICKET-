@@ -1,19 +1,21 @@
+<%# User có một cuộc trò chuyện với nhóm IT; chat-user.js mở panel và tải tin định kỳ. %>
+<%# Ô chatMessages là nơi chat-render.js chèn tin; form được JS gửi qua API thay vì tải lại trang. %>
 <button type="button" class="chat-fab" id="chatFab" aria-label="Mở chat với IT">
-  💬
+  <%- include('icon', { name: 'message-circle' }) %>
   <span class="chat-fab-badge" id="chatUnreadBadge" data-zero="true">0</span>
 </button>
 
 <div class="chat-panel" id="chatPanel" aria-hidden="true">
   <div class="chat-panel-head">
-    <span>💬 Chat với IT Support</span>
-    <button type="button" class="chat-panel-close" id="chatPanelClose" aria-label="Đóng chat">✕</button>
+    <span><%- include('icon', { name: 'message-circle' }) %> Chat với IT Support</span>
+    <button type="button" class="chat-panel-close" id="chatPanelClose" aria-label="Đóng chat"><%- include('icon', { name: 'x' }) %></button>
   </div>
   <div class="chat-messages" id="chatMessages">
     <p class="chat-empty">Chưa có tin nhắn — gửi lời chào để bắt đầu trò chuyện với IT nhé!</p>
   </div>
   <form class="chat-input-row" id="chatForm">
-    <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." maxlength="2000" autocomplete="off" required>
-    <button type="submit" class="btn btn-primary chat-send-btn">Gửi</button>
+    <input type="text" id="chatInput" name="text" placeholder="Nhập tin nhắn..." maxlength="2000" autocomplete="off" required>
+    <button type="submit" class="btn btn-primary chat-send-btn"><%- include('icon', { name: 'send' }) %> Gửi</button>
   </form>
 </div>
 <script src="/js/chat-render.js"></script>

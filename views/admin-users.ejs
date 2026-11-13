@@ -1,19 +1,24 @@
 <!DOCTYPE html>
+<%# Trang chỉ dành cho admin: thống kê tài khoản, tạo mới, tìm kiếm, đổi vai trò và đặt lại mật khẩu. %>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
+  <script src="/js/icons.js" defer></script>
+  <script src="/js/ui.js" defer></script>
   <title>Quản lý người dùng — Bàn hỗ trợ IT</title>
 </head>
 <body>
+  <%- include('partials/feedback') %>
   <%- include('partials/admin-sidebar') %>
   <div class="container has-sidebar">
     <%- include('partials/admin-header', { pageTitle: 'Quản lý người dùng' }) %>
 
-    <% if (flashMsg) { %> <p class="success-box"><%= flashMsg %></p> <% } %>
-    <% if (flashError) { %> <p class="error-box"><%= flashError %></p> <% } %>
+    <% if (flashMsg) { %> <p class="success-box" data-server-flash><%= flashMsg %></p> <% } %>
+    <% if (flashError) { %> <p class="error-box" role="alert"><%= flashError %></p> <% } %>
 
+    <%# Các số lượng đã được tính ở route; template chỉ ghép và hiển thị. %>
     <div class="stat-grid users-stats">
       <div class="card stat-card">
         <span class="stat-label">Tổng tài khoản</span>
@@ -31,25 +36,27 @@
     </div>
 
     <div class="card">
-      <details class="new-ticket-toggle">
-        <summary class="new-ticket-summary">➕ Tạo tài khoản mới</summary>
+      <details class="new-ticket-toggle" <%= typeof fieldErrors !== 'undefined' && Object.keys(fieldErrors).length ? 'open' : '' %>>
+        <summary class="new-ticket-summary"><%- include('partials/icon', { name: 'plus' }) %> Tạo tài khoản mới</summary>
         <div class="new-ticket-body">
           <form action="/admin/users" method="POST">
             <div class="field-row">
               <div class="field">
                 <label for="nu-username">Tên đăng nhập</label>
-                <input type="text" id="nu-username" name="username" minlength="3" maxlength="30" required autocomplete="off">
+                <input type="text" id="nu-username" name="username" value="<%= typeof formValues !== 'undefined' ? formValues.username || '' : '' %>" minlength="3" maxlength="30" required autocomplete="off">
+                <%- include('partials/field-error', { name: 'username', inputId: 'nu-username' }) %>
               </div>
               <div class="field">
                 <label for="nu-password">Mật khẩu (tối thiểu 6 ký tự)</label>
                 <input type="password" id="nu-password" name="password" minlength="6" required autocomplete="new-password">
+                <%- include('partials/field-error', { name: 'password', inputId: 'nu-password' }) %>
               </div>
               <div class="field">
                 <label for="nu-role">Vai trò</label>
                 <select id="nu-role" name="role">
-                  <option value="user" selected>Người dùng</option>
-                  <option value="staff">Nhân viên IT</option>
-                  <option value="admin">Admin IT</option>
+                  <option value="user" <%= typeof formValues === 'undefined' || !formValues.role || formValues.role === 'user' ? 'selected' : '' %>>Người dùng</option>
+                  <option value="staff" <%= typeof formValues !== 'undefined' && formValues.role === 'staff' ? 'selected' : '' %>>Nhân viên IT</option>
+                  <option value="admin" <%= typeof formValues !== 'undefined' && formValues.role === 'admin' ? 'selected' : '' %>>Admin IT</option>
                 </select>
               </div>
             </div>
@@ -62,6 +69,7 @@
     <div class="card">
       <h3>Danh sách tài khoản</h3>
 
+      <%# GET giữ từ khóa và vai trò trong URL; đường dẫn xuất Excel dùng lại hai giá trị đó. %>
       <form class="user-filter" action="/admin/users" method="GET">
         <input type="search" name="q" value="<%= q %>" placeholder="Tìm theo tên đăng nhập..." aria-label="Tìm theo tên đăng nhập">
         <select name="role" aria-label="Lọc theo vai trò">
@@ -72,7 +80,8 @@
         </select>
         <button type="submit" class="btn btn-ghost">Lọc</button>
         <% if (q || roleFilter) { %> <a href="/admin/users" class="btn btn-ghost">Xoá lọc</a> <% } %>
-        <a href="/admin/export/users.xlsx?q=<%= encodeURIComponent(q) %>&role=<%= encodeURIComponent(roleFilter) %>" class="btn btn-ghost">📊 Xuất Excel</a>
+        <a href="/admin/export/users.xlsx?q=<%= encodeURIComponent(q) %>&role=<%= encodeURIComponent(roleFilter) %>" class="btn btn-ghost"><%- include('partials/icon', { name: 'chart-column-increasing' }) %> Xuất Excel</a>
+        <a href="/admin/export/users.pdf?q=<%= encodeURIComponent(q) %>&role=<%= encodeURIComponent(roleFilter) %>" class="btn btn-ghost"><%- include('partials/icon', { name: 'download' }) %> Xuất PDF</a>
       </form>
 
       <div class="table-scroll">
@@ -87,6 +96,7 @@
             </tr>
           </thead>
           <tbody>
+            <%# isMe nhận diện tài khoản hiện tại để không hiện thao tác tự đổi vai trò hoặc tự xóa. %>
             <% users.forEach(u => {
                  const isMe = String(u._id) === String(user.id);
                  const c = countsById[String(u._id)] || { total: 0, open: 0 }; %>
@@ -99,7 +109,7 @@
                     <span class="role-badge role-admin">Admin IT</span>
                   <% } else { %>
                     <form action="/admin/users/<%= u._id %>/role" method="POST">
-                      <select name="role" onchange="this.form.submit()" aria-label="Đổi vai trò của <%= u.username %>">
+                      <select name="role" onchange="this.form.requestSubmit()" aria-label="Đổi vai trò của <%= u.username %>">
                         <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>Người dùng</option>
                         <option value="staff" <%= u.role === 'staff' ? 'selected' : '' %>>Nhân viên IT</option>
                         <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin IT</option>

@@ -134,7 +134,7 @@ test('user detail access is restricted to their own tickets', async t => {
 test('list and detail render correct assignment controls for all roles', async () => {
   const ticket = new Ticket({ _id: id, user: ownerId, title: 'Printer', description: 'Paper jam' });
   ticket.createdAt = ticket.updatedAt = new Date();
-  const common = { ticket, admins: [{ _id: staffId, username: 'IT One' }], message: null,
+  const common = { ticket, deadlines: require('../public/js/deadlines'), admins: [{ _id: staffId, username: 'IT One' }], message: null,
     STATUS: Ticket.STATUS, STATUS_SLUG: Ticket.STATUS_SLUG, PRIORITY: Ticket.PRIORITY,
     PRIORITY_SLUG: Ticket.PRIORITY_SLUG, REQUEST_TYPE: Ticket.REQUEST_TYPE, REQUEST_TYPE_SLUG: Ticket.REQUEST_TYPE_SLUG };
   for (const role of ['admin', 'staff', 'user']) {
@@ -144,7 +144,9 @@ test('list and detail render correct assignment controls for all roles', async (
     assert.equal(detail.includes('Nhận xử lý yêu cầu'), role === 'staff');
     if (role !== 'user') {
       const list = await ejs.renderFile('views/admin.ejs', { ...common, user, tickets: [ticket],
-        assignmentFilter: 'mine', notifications: [], activeTab: 'list' });
+        ...require('../services/ticket-list').listMetadata(require('../utils/ticket-filters').parseTicketFilters({assignee:'mine'},user).filters,
+          {total:1,page:1,pages:1,pageSize:20,from:1,to:1}),
+        filterError:null, notifications: [], activeTab: 'list' });
       assert(list.includes('Người xử lý'));
       assert.equal(list.includes('Nhận xử lý</button>'), role === 'staff');
     }

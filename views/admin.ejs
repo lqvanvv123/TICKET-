@@ -1,89 +1,43 @@
 <!DOCTYPE html>
+<%# Bộ lọc nằm ngoài ticketListContent để cập nhật realtime không làm mất nội dung đang nhập. %>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/tickets.css">
+  <link rel="stylesheet" href="/ticket-list.css">
+  <script src="/js/icons.js" defer></script>
+  <script src="/js/ui.js" defer></script>
+  <script src="/js/deadlines.js" defer></script>
   <title>Bàn làm việc IT — Bàn hỗ trợ IT</title>
 </head>
-<body data-role="<%= user.role %>" data-user-id="<%= user.id %>" data-assignment-filter="<%= assignmentFilter %>">
+<body data-role="<%= user.role %>" data-user-id="<%= user.id %>" data-list-url="<%= listUrl %>" data-filter-invalid="<%= filterError ? 'true' : 'false' %>">
+  <%- include('partials/feedback') %>
   <%- include('partials/admin-sidebar') %>
-  <div class="container container-wide has-sidebar">
+  <main class="container container-wide has-sidebar ticket-list-workspace">
     <%- include('partials/admin-header', { pageTitle: 'Danh sách yêu cầu' }) %>
-
     <%- include('partials/page-head', {
       title: 'Yêu cầu cần xử lý',
-      hint: 'Toàn bộ yêu cầu từ người dùng — đổi trạng thái ngay trong bảng, thay đổi hiện tức thì.',
-      count: tickets.length
+      hint: 'Tìm yêu cầu, theo dõi hạn và cập nhật công việc của bạn.',
+      count: pagination.total
     }) %>
-
-    <div class="card">
-      <form action="/admin" method="GET" class="user-filter">
-        <label for="assignmentFilter">Người xử lý</label>
-        <select id="assignmentFilter" name="assignment">
-          <option value="all" <%= assignmentFilter === 'all' ? 'selected' : '' %>>Tất cả yêu cầu</option>
-          <option value="mine" <%= assignmentFilter === 'mine' ? 'selected' : '' %>>Việc của tôi</option>
-          <option value="unassigned" <%= assignmentFilter === 'unassigned' ? 'selected' : '' %>>Chưa phân công</option>
-        </select>
-        <button class="btn btn-ghost" type="submit">Lọc</button>
-      </form>
-      <p id="assignmentNotice" hidden>Phân công vừa thay đổi. <a href="">Làm mới danh sách</a></p>
-
-      <% if (user.role === 'admin') { %>
-      <form class="export-bar" action="/admin/export/tickets.xlsx" method="GET">
-        <span class="export-label">📊 Xuất Excel</span>
-        <select name="status" aria-label="Lọc theo trạng thái">
-          <option value="">Tất cả trạng thái</option>
-          <% Object.values(STATUS).forEach(s => { %><option value="<%= s %>"><%= s %></option><% }) %>
-        </select>
-        <select name="priority" aria-label="Lọc theo mức độ ưu tiên">
-          <option value="">Tất cả mức ưu tiên</option>
-          <% Object.values(PRIORITY).forEach(p => { %><option value="<%= p %>"><%= p %></option><% }) %>
-        </select>
-        <select name="type" aria-label="Lọc theo loại yêu cầu">
-          <option value="">Tất cả loại yêu cầu</option>
-          <% Object.values(REQUEST_TYPE).forEach(r => { %><option value="<%= r %>"><%= r %></option><% }) %>
-        </select>
-        <label class="export-date">Từ <input type="date" name="from"></label>
-        <label class="export-date">Đến <input type="date" name="to"></label>
-        <button type="submit" class="btn btn-primary export-btn">Tải file .xlsx</button>
-      </form>
-      <% } %>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Mã</th>
-              <th>Người gửi</th>
-              <th>Tiêu đề</th>
-              <th>Loại</th>
-              <th>Ưu tiên</th>
-              <th>Đính kèm</th>
-              <th>Người xử lý</th>
-              <th>Trạng thái</th>
-              <th>Cập nhật</th>
-            </tr>
-          </thead>
-          <tbody id="ticketTbody">
-            <% tickets.forEach(t => { %>
-              <%- include('partials/admin-ticket-row', { t }) %>
-            <% }) %>
-            <% if (tickets.length === 0) { %>
-              <tr class="empty-row" id="emptyRow"><td colspan="9">Không có yêu cầu phù hợp.</td></tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+    <section class="card ticket-filter-card" aria-label="Tìm kiếm và bộ lọc">
+      <details class="ticket-filter-panel" open>
+        <summary class="ticket-filter-toggle">Tìm kiếm &amp; bộ lọc <span><%= activeFilters.length ? activeFilters.length + ' điều kiện đang áp dụng' : 'Tìm theo tiêu đề, mã hoặc người xử lý' %></span></summary>
+        <%- include('partials/ticket-filters') %>
+        <p class="deadline-hint">Ngày tạo và hạn theo giờ Việt Nam. Sắp đến hạn: còn tối đa 24 giờ.</p>
+      </details>
+    </section>
+    <% if (filterError) { %><p class="error-box" role="alert"><%= filterError %> Vui lòng chọn lại bộ lọc.</p><% } %>
+    <div class="ticket-list-sync"><span id="listSync" role="status">Dữ liệu đã sẵn sàng</span><button class="btn btn-ghost" id="listRefresh" type="button"><%- include('partials/icon', { name: 'history' }) %>Làm mới</button></div>
+    <div id="ticketListContent"><%- include('partials/admin-ticket-list') %></div>
+  </main>
   <div class="history-modal" id="historyModal" hidden>
     <div class="history-box" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
       <div class="history-box-head">
-        <div>
-          <h3 id="historyTitle">Lịch sử trạng thái</h3>
-          <p class="history-sub" id="historySub"></p>
-        </div>
-        <button type="button" class="history-close" id="historyClose" aria-label="Đóng">✕</button>
+        <div><h3 id="historyTitle">Lịch sử trạng thái</h3><p class="history-sub" id="historySub"></p></div>
+        <button type="button" class="history-close" id="historyClose" aria-label="Đóng"><%- include('partials/icon', { name: 'x' }) %></button>
       </div>
       <ol class="history-timeline" id="historyList"></ol>
     </div>

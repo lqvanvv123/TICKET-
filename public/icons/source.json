@@ -1,0 +1,31 @@
+{
+  "source": "https://lucide-animated.com/",
+  "repository": "https://github.com/pqoqubbw/icons",
+  "commit": "4662fff2b60fdcf4751b32013606756caf7c4c26",
+  "adaptation": "Static SVG geometry with local CSS animation for EJS",
+  "icons": [
+    "bell",
+    "message-circle",
+    "menu",
+    "x",
+    "users",
+    "book-text",
+    "clock",
+    "wrench",
+    "badge-alert",
+    "plus",
+    "chart-column-increasing",
+    "history",
+    "attach-file",
+    "phone",
+    "clipboard-check",
+    "monitor-cog",
+    "arrow-left",
+    "arrow-right",
+    "send",
+    "logout",
+    "download",
+    "check",
+    "user-check"
+  ]
+}

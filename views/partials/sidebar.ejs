@@ -1,5 +1,7 @@
+<%# Menu bên user: các nhóm hướng dẫn dùng details/summary để mở nội dung theo chủ đề. %>
+<%# Các ID phải thống nhất với sidebar.js để nút mở, lớp phủ và nút đóng hoạt động. %>
 <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Mở menu" aria-expanded="false" aria-controls="appSidebar">
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+  <%- include('icon', { name: 'menu' }) %>
 </button>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -7,12 +9,12 @@
 <aside class="sidebar" id="appSidebar" aria-hidden="true">
   <div class="sidebar-head">
     <span class="sidebar-title">Menu</span>
-    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Đóng menu">✕</button>
+    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Đóng menu"><%- include('icon', { name: 'x' }) %></button>
   </div>
 
   <nav class="sidebar-nav">
     <details class="kb-root">
-      <summary class="kb-nav-btn">☎️ Liên hệ IT trực tiếp</summary>
+      <summary class="kb-nav-btn"><%- include('icon', { name: 'phone' }) %> Liên hệ IT trực tiếp</summary>
       <div class="kb-body">
         <p class="kb-hint">Trường hợp gấp, không đợi được xử lý qua ticket, bạn có thể liên hệ trực tiếp:</p>
         <ul class="contact-list">
@@ -27,13 +29,13 @@
     </details>
 
     <details class="kb-root">
-      <summary class="kb-nav-btn">📋 Lỗi thường gặp</summary>
+      <summary class="kb-nav-btn"><%- include('icon', { name: 'clipboard-check' }) %> Lỗi thường gặp</summary>
 
       <div class="kb-body">
         <p class="kb-hint">Xem thử các lỗi hay gặp dưới đây — nếu vẫn chưa khắc phục được, hãy gửi yêu cầu ở form bên dưới.</p>
 
         <details class="kb-category">
-          <summary>🖥️ Máy tính</summary>
+          <summary><%- include('icon', { name: 'monitor-cog' }) %> Máy tính</summary>
           <div class="kb-item">
             <p class="kb-q">Máy không lên nguồn / không khởi động</p>
             <p class="kb-a">Kiểm tra dây nguồn đã cắm chặt chưa, ổ điện có ra điện không, đèn báo nguồn trên case có sáng không. Nếu là laptop, thử cắm sạc và giữ nút nguồn 10 giây rồi mở lại.</p>
@@ -57,7 +59,7 @@
         </details>
 
         <details class="kb-category">
-          <summary>🖨️ Máy in</summary>
+          <summary><%- include('icon', { name: 'wrench' }) %> Máy in</summary>
           <div class="kb-item">
             <p class="kb-q">Máy in không nhận lệnh in</p>
             <p class="kb-a">Kiểm tra máy in đã bật nguồn và cáp USB/mạng đã cắm chắc, kiểm tra máy in có đang ở trạng thái "Offline" trong danh sách máy in trên máy tính không.</p>
@@ -81,7 +83,7 @@
         </details>
 
         <details class="kb-category">
-          <summary>🖱️ Thiết bị ngoại vi</summary>
+          <summary><%- include('icon', { name: 'wrench' }) %> Thiết bị ngoại vi</summary>
           <div class="kb-item">
             <p class="kb-q">Chuột / bàn phím không hoạt động</p>
             <p class="kb-a">Với thiết bị không dây: kiểm tra pin và công tắc bật/tắt. Với thiết bị có dây: cắm lại cổng USB, thử sang cổng USB khác trên máy.</p>

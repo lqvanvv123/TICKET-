@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!wrap || !bellBtn || !panel || !list) return;
 
   function setBadge(count) {
+    // data-zero giúp CSS ẩn huy hiệu khi không còn thông báo chưa đọc.
     if (!badge) return;
     badge.textContent = count;
     badge.setAttribute("data-zero", count === 0 ? "true" : "false");
@@ -44,9 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   async function api(url, method) {
-    const res = await fetch(url, { method });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
+    // Dùng chung cho đọc/xóa: chỉ cập nhật giao diện tiếp khi server trả HTTP thành công.
+    return window.ITUI.request(url, { method });
   }
 
   // Bấm vào 1 thông báo -> đánh dấu đã đọc; bấm ✕ -> xóa
@@ -54,6 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const item = e.target.closest(".notif-item");
     if (!item) return;
     const id = item.dataset.id;
+    if (item.dataset.pending) return;
+    item.dataset.pending = 'true';
+    item.setAttribute('aria-busy', 'true');
 
     try {
       if (e.target.closest("[data-del]")) {
@@ -61,40 +64,48 @@ document.addEventListener("DOMContentLoaded", () => {
         item.remove();
         updateEmpty();
         setBadge(unreadInDom());
+        window.ITUI.toast('Đã xóa thông báo.');
       } else if (item.classList.contains("unread")) {
         await api("/api/notifications/" + id + "/read", "POST");
         item.classList.remove("unread");
         setBadge(unreadInDom());
       }
     } catch (err) {
-      alert("Không thể cập nhật thông báo. Vui lòng thử lại.");
-    }
+      window.ITUI.toast('Không thể cập nhật thông báo. Vui lòng thử lại.', 'error');
+    } finally { delete item.dataset.pending; item.removeAttribute('aria-busy'); }
   });
 
-  document.getElementById("notifReadAll").addEventListener("click", async () => {
+  document.getElementById("notifReadAll").addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
+    const restore = window.ITUI.busy(event.currentTarget, 'Đang lưu…');
     try {
       await api("/api/notifications/read-all", "POST");
       list.querySelectorAll(".notif-item.unread").forEach((el) => el.classList.remove("unread"));
       setBadge(0);
+      window.ITUI.toast('Đã đánh dấu tất cả thông báo là đã đọc.');
     } catch (err) {
-      alert("Không thể cập nhật thông báo. Vui lòng thử lại.");
-    }
+      window.ITUI.toast('Không thể cập nhật thông báo. Vui lòng thử lại.', 'error');
+    } finally { restore(); }
   });
 
-  document.getElementById("notifClearAll").addEventListener("click", async () => {
+  document.getElementById("notifClearAll").addEventListener("click", async (event) => {
+    if (event.currentTarget.disabled) return;
     if (!list.querySelector(".notif-item")) return;
     if (!confirm("Xóa tất cả thông báo?")) return;
+    const restore = window.ITUI.busy(event.currentTarget, 'Đang xóa…');
     try {
       await api("/api/notifications", "DELETE");
       list.querySelectorAll(".notif-item").forEach((el) => el.remove());
       updateEmpty();
       setBadge(0);
+      window.ITUI.toast('Đã xóa tất cả thông báo.');
     } catch (err) {
-      alert("Không thể xóa thông báo. Vui lòng thử lại.");
-    }
+      window.ITUI.toast('Không thể xóa thông báo. Vui lòng thử lại.', 'error');
+    } finally { restore(); }
   });
 
   function buildItem(n) {
+    // Dựng phần tử DOM cho thông báo mới; textContent hiển thị nội dung dưới dạng chữ, không chạy HTML.
     const item = document.createElement("div");
     item.className = "notif-item" + (n.isRead ? "" : " unread");
     item.dataset.id = n.id;
@@ -115,13 +126,14 @@ document.addEventListener("DOMContentLoaded", () => {
     del.setAttribute("data-del", "");
     del.setAttribute("aria-label", "Xóa thông báo");
     del.title = "Xóa thông báo";
-    del.textContent = "✕";
+    del.appendChild(window.ITIcons.create("x"));
 
     item.append(body, del);
     return item;
   }
 
   function render(items) {
+    // Thay danh sách bằng dữ liệu mới từ server; giữ lại phần tử báo danh sách trống.
     list.querySelectorAll(".notif-item").forEach((el) => el.remove());
     items.forEach((n) => list.insertBefore(buildItem(n), empty || null));
     updateEmpty();
@@ -134,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       list.insertBefore(buildItem(n), list.firstChild);
       updateEmpty();
       setBadge(unreadInDom());
+      window.ITIcons.play(bellBtn.querySelector(".ui-icon"));
     });
   }
 

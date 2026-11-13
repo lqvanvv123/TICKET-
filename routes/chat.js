@@ -7,6 +7,7 @@ const { requireLogin, requireRole } = require("../middleware/auth");
 
 // Dữ liệu 1 tin nhắn trả về cho giao diện: có tên người gửi và cờ "tin của chính mình"
 function chatMessageDto(m, viewerId) {
+  // DTO là dữ liệu rút gọn gửi ra trình duyệt; isMine xác định tin nhắn do chính người xem gửi.
   const sender = m.sender && m.sender._id ? m.sender : null;
   return {
     id: m._id,
@@ -24,10 +25,12 @@ function chatMessageDto(m, viewerId) {
 router.get("/chat/api/messages", requireLogin, requireRole("user"), async (req, res) => {
   const userId = req.session.user.id;
   const messages = await ChatMessage.find({ user: userId })
+    // Sắp cũ → mới để đọc theo thứ tự hội thoại; limit giới hạn số bản ghi trả về.
     .sort({ createdAt: 1 })
     .limit(200)
     .populate("sender", "username");
 
+  // User mở cuộc trò chuyện thì đánh dấu các tin từ nhóm IT là đã đọc.
   await ChatMessage.updateMany(
     { user: userId, senderRole: { $in: ["admin", "staff"] }, readByUser: false },
     { $set: { readByUser: true } }
@@ -69,6 +72,8 @@ router.get("/chat/api/unread-count", requireLogin, requireRole("user"), async (r
 
 // Danh sách user đã từng chat, kèm tin nhắn cuối + số tin chưa đọc
 router.get("/chat/api/conversations", requireLogin, requireRole("admin", "staff"), async (req, res) => {
+  // Pipeline: sắp tin mới nhất trước → gom theo user → lấy tin đầu mỗi nhóm → sắp hội thoại.
+  // Nhờ sắp trước nên $first lấy đúng tin mới nhất, không phải tin đầu tiên từng gửi.
   const conversations = await ChatMessage.aggregate([
     { $sort: { createdAt: -1 } },
     {
@@ -82,11 +87,14 @@ router.get("/chat/api/conversations", requireLogin, requireRole("admin", "staff"
     { $sort: { lastAt: -1 } },
   ]);
 
+  // Lấy tên các user trong một truy vấn rồi tạo bảng ID → tên, tránh truy vấn từng hội thoại.
   const userIds = conversations.map((c) => c._id);
   const users = await User.find({ _id: { $in: userIds } }, "username");
   const usernameById = {};
   users.forEach((u) => (usernameById[u._id.toString()] = u.username));
 
+  // $match lọc tin user chưa được nhóm IT đọc; $group gom theo user, $sum: 1 đếm từng tin.
+  // readByAdmin là trạng thái đọc chung của nhóm IT, không tách riêng từng nhân viên.
   const unreadCounts = await ChatMessage.aggregate([
     { $match: { senderRole: "user", readByAdmin: false, user: { $in: userIds } } },
     { $group: { _id: "$user", count: { $sum: 1 } } },
@@ -143,6 +151,7 @@ router.post("/chat/api/messages/:userId", requireLogin, requireRole("admin", "st
     user: userId,
     sender: req.session.user.id,
     senderRole: req.session.user.role,
+    // Lưu đúng người và vai trò gửi để hiển thị tên nhân viên hỗ trợ trong cuộc trò chuyện.
     text,
     readByAdmin: true,
     readByUser: false,

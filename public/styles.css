@@ -1,6 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("/icons.css");
+@import url("/ui.css");
+@import url("/deadlines.css");
 
 /* ============ Design tokens ============ */
+/* Biến :root dùng chung toàn trang: var(--ink) lấy màu chữ, var(--surface) lấy màu nền khối.
+   Muốn chỉnh màu/chữ đồng bộ thì chỉnh biến ở đây thay vì sửa riêng từng thành phần. */
 :root {
   --ink: #1f2422;
   --ink-soft: #3a3f3b;
@@ -187,6 +192,7 @@ input[type="file"] {
 }
 
 /* ============ Form controls ============ */
+/* Các ô input/select/textarea và nút dùng chung kiểu dáng; class bổ sung tinh chỉnh từng trang. */
 input[type="text"],
 input[type="password"],
 textarea,
@@ -373,6 +379,7 @@ button,
 }
 
 /* ============ Tables (ledger) ============ */
+/* Bảng hiển thị dữ liệu dạng sổ; khối table-scroll cho phép cuộn ngang khi nhiều cột. */
 .table-scroll {
   overflow-x: auto;
 }
@@ -434,6 +441,7 @@ td select {
 }
 
 /* ============ Status stamp ============ */
+/* Class trạng thái quyết định màu nhãn; JS đổi class khi server phát ticket:updated. */
 .stamp {
   display: inline-block;
   font-family: var(--font-mono);
@@ -1185,6 +1193,7 @@ td select {
 }
 
 /* ============ Responsive ============ */
+/* Các quy tắc trong @media chỉ áp dụng khi màn hình đạt điều kiện kích thước bên dưới. */
 @media (max-width: 600px) {
   body {
     padding: 20px 14px 48px;
@@ -1228,6 +1237,7 @@ td select {
 }
 
 /* ============ Bảng thông báo (bấm chuông) ============ */
+/* CSS phụ trách vị trí/màu; notifications.js điều khiển hidden, số chưa đọc và các dòng thông báo. */
 .notif-wrap {
   position: relative;
 }

@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.addEventListener("click", async (e) => {
+    // Bắt sự kiện ở document để nút lịch sử của các dòng mới thêm qua realtime cũng hoạt động.
     const btn = e.target.closest("[data-history]");
     if (!btn) return;
 
@@ -32,13 +33,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!data.ok) throw new Error(data.error);
 
       sub.textContent = "#" + data.code + " — " + data.title;
+      // Mỗi bản ghi tạo một dòng: trạng thái cũ → mới, thời gian và người thay đổi.
       data.history.forEach((h) => {
         const li = document.createElement("li");
         const change = document.createElement("div");
         change.className = "history-change";
+        // Không có from nghĩa là mốc tạo yêu cầu; các mốc sau hiển thị hai trạng thái với mũi tên.
         if (h.from) {
           const arrow = document.createElement("span");
-          arrow.textContent = "→";
+          arrow.appendChild(window.ITIcons.create("arrow-right"));
           change.append(stamp(h.from), arrow, stamp(h.to));
         } else {
           const label = document.createElement("span");

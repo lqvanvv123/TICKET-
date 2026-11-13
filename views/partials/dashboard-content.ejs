@@ -1,0 +1,31 @@
+<%# Tất cả chỉ số dùng chung tập yêu cầu đã lọc theo ngày tạo; không phải số hoàn thành phát sinh trong kỳ. %>
+<div class="dashboard-kpis">
+  <a class="card stat-card deadline-overdue" href="<%= dashboardUrl({ deadline: 'overdue', status: 'open' }) %>"><span class="stat-label">Quá hạn xử lý</span><strong class="stat-value"><%= overdue %></strong><span class="dashboard-hint">Yêu cầu còn mở đã hết hạn</span></a>
+  <a class="card stat-card deadline-soon" href="<%= dashboardUrl({ deadline: 'soon', status: 'open' }) %>"><span class="stat-label">Sắp đến hạn</span><strong class="stat-value"><%= dueSoon %></strong><span class="dashboard-hint">Còn tối đa 24 giờ</span></a>
+  <a class="card stat-card" href="<%= dashboardUrl({ status: '' }) %>"><span class="stat-label">Tổng yêu cầu</span><strong class="stat-value"><%= total %></strong><span class="dashboard-hint">Trong bộ lọc hiện tại</span></a>
+  <a class="card stat-card status-new" href="<%= dashboardUrl({ status: STATUS.NEW }) %>"><span class="stat-label">Chưa sửa</span><strong class="stat-value"><%= byStatus[STATUS.NEW] %></strong><span class="dashboard-hint">Chờ bắt đầu xử lý</span></a>
+  <a class="card stat-card status-in-progress" href="<%= dashboardUrl({ status: STATUS.IN_PROGRESS }) %>"><span class="stat-label">Đang sửa lỗi</span><strong class="stat-value"><%= byStatus[STATUS.IN_PROGRESS] %></strong><span class="dashboard-hint">Đang được xử lý</span></a>
+  <a class="card stat-card status-done" href="<%= dashboardUrl({ status: STATUS.DONE }) %>"><span class="stat-label">Hoàn thành</span><strong class="stat-value"><%= byStatus[STATUS.DONE] %></strong><span class="dashboard-hint">Yêu cầu đã đóng</span></a>
+  <div class="card stat-card"><span class="stat-label">Tỷ lệ hoàn thành</span><strong class="stat-value"><%= completionRate %><small>%</small></strong><progress max="100" value="<%= completionRate %>" aria-label="Tỷ lệ yêu cầu hoàn thành"></progress></div>
+  <div class="card stat-card"><span class="stat-label">Thời gian xử lý TB</span><strong class="stat-value"><%= avgResolutionHours === null ? '—' : avgResolutionHours.toFixed(1) %><% if (avgResolutionHours !== null) { %><small> giờ</small><% } %></strong><span class="dashboard-hint">Từ lúc tạo đến hoàn thành</span></div>
+  <a class="card stat-card status-in-progress" href="<%= dashboardUrl({ assignee: 'unassigned', status: 'open' }) %>"><span class="stat-label">Chưa có người nhận</span><strong class="stat-value"><%= unassigned %></strong><span class="dashboard-hint">Chỉ tính yêu cầu còn mở</span></a>
+  <a class="card stat-card status-new" href="<%= dashboardUrl({ priority: PRIORITY.URGENT, status: 'open' }) %>"><span class="stat-label">Khẩn cấp còn mở</span><strong class="stat-value"><%= urgentOpen %></strong><span class="dashboard-hint">Cần kiểm tra sớm</span></a>
+</div>
+<% if (!total) { %>
+  <section class="card dashboard-empty"><%- include('icon', { name: 'clipboard-check' }) %><h3>Chưa có yêu cầu phù hợp</h3><p>Thử mở rộng thời gian hoặc xóa bộ lọc để xem dữ liệu.</p><a class="btn btn-ghost" href="/admin/dashboard">Xóa bộ lọc</a></section>
+<% } %>
+<%# Số liệu chữ luôn có sẵn để xem nếu thư viện vẽ biểu đồ không tải được. %>
+<div class="dashboard-chart-grid">
+  <% for (const [id, title, entries] of [['chartStatus', 'Theo trạng thái', byStatus], ['chartPriority', 'Theo ưu tiên', byPriority], ['chartType', 'Theo loại yêu cầu', byRequestType]]) { %>
+    <section class="card"><div class="card-head"><h3><%= title %></h3></div><div class="chart-box"><canvas id="<%= id %>" role="img" aria-label="Biểu đồ <%= title.toLowerCase() %>"></canvas></div>
+      <ul class="dashboard-legend"><% Object.entries(entries).forEach(([label, value]) => { %><li><span><%= label %></span><strong><%= value %></strong></li><% }) %></ul>
+    </section>
+  <% } %>
+</div>
+<section class="card"><div class="card-head"><h3>Yêu cầu mới nhất</h3><a href="/admin">Mở danh sách yêu cầu</a></div>
+  <% if (!recent.length) { %><p class="dashboard-empty-note">Chưa có dữ liệu trong bộ lọc.</p><% } else { %>
+    <div class="dashboard-recent"><% recent.forEach(ticket => { %><a href="/tickets/<%= ticket._id %>"><span><strong><%= ticket.title %></strong><small><%= ticket.user ? ticket.user.username : 'Tài khoản đã xóa' %> · <%= new Date(ticket.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) %></small><%- include('ticket-deadline', { t: ticket }) %></span><span class="stamp stamp-<%= STATUS_SLUG[ticket.status] %>"><%= ticket.status %></span></a><% }) %></div>
+  <% } %>
+</section>
+<% if (user.role === 'admin') { %><div class="dashboard-export"><a class="btn btn-ghost" href="<%= exportUrl %>"><%- include('icon', { name: 'download' }) %>Xuất Excel theo bộ lọc</a> <a class="btn btn-ghost" href="<%= exportUrl.replace('.xlsx?', '.pdf?') %>"><%- include('icon', { name: 'download' }) %>Xuất PDF theo bộ lọc</a></div><% } %>
+<p class="dashboard-hint">Cập nhật lúc <time id="dashboardUpdated" datetime="<%= generatedAt %>"><%= new Date(generatedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) %></time> · Số liệu dựa trên trạng thái hiện tại của các yêu cầu có ngày tạo trong khoảng đã chọn.</p>
